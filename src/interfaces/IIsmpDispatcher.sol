@@ -134,33 +134,29 @@ struct PostResponseMessage {
 // An object for dispatching post requests to the IsmpDispatcher
 struct DispatchPost {
     // bytes representation of the destination chain
-    bytes destChain;
-    // the source module
-    bytes from;
-    // the detination module
+    bytes dest;
+    // the destination module
     bytes to;
     // the request body
     bytes body;
     // the timestamp at which this request should timeout
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // gas limit for executing this request on destination & its response (if any) on the source.
-    uint256 gaslimit;
+    uint64 gaslimit;
 }
 
 // An object for dispatching get requests to the IsmpDispatcher
 struct DispatchGet {
     // bytes representation of the destination chain
-    bytes destChain;
-    // the source module
-    bytes from;
+    bytes dest;
     // height at which to read the state machine
-    uint256 height;
+    uint64 height;
     // Storage keys to read
     bytes[] keys;
     // the timestamp at which this request should timeout
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // gas limit for executing this request on destination & its response (if any) on the source.
-    uint256 gaslimit;
+    uint64 gaslimit;
 }
 
 interface IIsmpDispatcher {
@@ -185,34 +181,51 @@ interface IIsmpDispatcher {
 
 library Message {
     function hash(PostResponse memory res) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                res.request.source,
-                res.request.dest,
-                res.request.nonce,
-                res.request.timeoutTimestamp,
-                res.request.body,
-                res.request.from,
-                res.request.to,
-                res.response
-            )
-        );
+        return
+            keccak256(
+                abi.encodePacked(
+                    res.request.source,
+                    res.request.dest,
+                    res.request.nonce,
+                    res.request.timeoutTimestamp,
+                    res.request.body,
+                    res.request.from,
+                    res.request.to,
+                    res.response
+                )
+            );
     }
 
     function hash(PostRequest memory req) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
-            )
-        );
+        return
+            keccak256(
+                abi.encodePacked(
+                    req.source,
+                    req.dest,
+                    req.nonce,
+                    req.timeoutTimestamp,
+                    req.from,
+                    req.to,
+                    req.body,
+                    req.gaslimit
+                )
+            );
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
         bytes memory keysEncoding = abi.encode(req.keys);
-        return keccak256(
-            abi.encodePacked(
-                req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding, req.gaslimit
-            )
-        );
+        return
+            keccak256(
+                abi.encodePacked(
+                    req.source,
+                    req.dest,
+                    req.nonce,
+                    req.height,
+                    req.timeoutTimestamp,
+                    req.from,
+                    keysEncoding,
+                    req.gaslimit
+                )
+            );
     }
 }
