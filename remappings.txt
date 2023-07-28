@@ -1,0 +1,3 @@
+openzeppelin/=lib/openzeppelin-contracts/contracts/
+solidity-merkle-trees/=lib/solidity-merkle-trees/src/
+multichain-token/=lib/multichain-native-tokens/src/

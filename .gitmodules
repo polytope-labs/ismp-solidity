@@ -1,0 +1,15 @@
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+	branch = v1.5.0
+[submodule "lib/solidity-merkle-trees"]
+	path = lib/solidity-merkle-trees
+	url = https://github.com/polytope-labs/solidity-merkle-trees
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+	branch = master
+[submodule "lib/multichain-native-tokens"]
+	path = lib/multichain-native-tokens
+	url = https://github.com/polytope-labs/multichain-native-tokens
+	branch = main

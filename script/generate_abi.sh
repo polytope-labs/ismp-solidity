@@ -1,0 +1,1 @@
+solc solidity-merkle-trees=$(pwd)/lib/solidity-merkle-trees/src forge-std=$(pwd)/lib/forge-std/src  openzeppelin=$(pwd)/lib/openzeppelin-contracts/contracts/  --abi ./src/consensus/BeefyV1.sol --overwrite -o out/abi
