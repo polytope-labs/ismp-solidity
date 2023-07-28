@@ -45,14 +45,14 @@ contract CrossChainGovernor is IIsmpModule {
     }
 
     function onGetResponse(GetResponse memory response) external pure {
-        revert("Module doesn't emit response");
+        revert("Module doesn't emit requests");
     }
 
     function onPostTimeout(PostRequest memory request) external pure {
-        revert("Module doesn't emit timeout");
+        revert("Module doesn't emit requests");
     }
 
     function onGetTimeout(GetRequest memory request) external pure {
-        revert("Module doesn't emit timeout");
+        revert("Module doesn't emit requests");
     }
 }
