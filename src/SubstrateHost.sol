@@ -6,9 +6,9 @@ import "./interfaces/IIsmpModule.sol";
 
 library SubstrateHost {
     // addresses of the precompiles
-    address public POST_REQUEST_DISPATCHER = 0x222A98a2832ae77E72a768bF5be1F82D8959f4Ec;
-    address public POST_RESPONSE_DISPATCHER = 0xEB928e2de75Cb5ab60aBE75f539C5312aeb46f38;
-    address public GET_REQUEST_DISPATCHER = 0xf2D8DC5239DdC053BA5151302483fc48D7E24e60;
+    address public constant POST_REQUEST_DISPATCHER = 0x222A98a2832ae77E72a768bF5be1F82D8959f4Ec;
+    address public constant POST_RESPONSE_DISPATCHER = 0xEB928e2de75Cb5ab60aBE75f539C5312aeb46f38;
+    address public constant GET_REQUEST_DISPATCHER = 0xf2D8DC5239DdC053BA5151302483fc48D7E24e60;
 
     /**
      * @dev Dispatch a POST request to the ISMP host.

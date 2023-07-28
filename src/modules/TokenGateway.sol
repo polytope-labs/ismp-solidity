@@ -19,7 +19,7 @@ error MinterRoleMissing();
 error AuthFailed();
 error NotDispatcher();
 
-contract TokenGateway is IIsmpModule {
+abstract contract TokenGateway is IIsmpModule {
     address admin;
     address host;
     bytes4 constant IERC6160Ext20ID = 0xbbb8b47e;
@@ -106,11 +106,11 @@ contract TokenGateway is IIsmpModule {
         IERC6160Ext20(tokenAddress).mint(to, amount, "");
     }
 
-    function onResponse(PostResponse memory response) public onlyDispatcher {
+    function onPostResponse(PostResponse memory response) public onlyDispatcher {
         revert("Token gateway doesn't emit responses");
     }
 
-    function onTimeout(PostRequest memory request) public onlyDispatcher {
+    function onPostTimeout(PostRequest memory request) public onlyDispatcher {
         (address to, uint256 amount, uint256 tokenId) = _decodePackedData(request.body);
         address tokenAddress = tokenIds[tokenId];
 

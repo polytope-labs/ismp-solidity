@@ -79,9 +79,9 @@ abstract contract Handler is IHandler, Context {
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "ISMP_Handler: Proof height not found!");
-        bytes32[] memory proof = abi.decode(request.proof.multiproof, (bytes32[]));
+        // bytes32[] memory proof = abi.decode(request.proof.multiproof, (bytes32[]));
         require(
-            MerkleMountainRange.VerifyProof(root, proof, leaves, request.proof.mmrSize),
+            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
             "ISMP_Handler: Invalid request proofs"
         );
 

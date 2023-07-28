@@ -9,15 +9,24 @@ import "../StateMachine.sol";
 
 
 contract CrossChainGovernor is IIsmpModule {
-    address private host;
-    uint256 private paraId;
+
+    using Bytes for bytes;
+
+    address private _host;
+    uint256 private _paraId;
 
     modifier onlyIsmpHost() {
-        require(msg.sender == host, "CrossChainGovernance: Invalid caller");
+        require(msg.sender == _host, "CrossChainGovernance: Invalid caller");
+        _;
+    }
+
+    constructor (address host, uint256 paraId){
+        _host = host;
+        _paraId = paraId;
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {
-        require(request.source.equals(StateMachine.polkadot(paraId)), "Unauthorized request");
+        require(request.source.equals(StateMachine.polkadot(_paraId)), "Unauthorized request");
         (
             address admin,
             address consensus,
@@ -30,7 +39,7 @@ contract CrossChainGovernor is IIsmpModule {
         BridgeParams memory params =
             BridgeParams(admin, consensus, handler, challengePeriod, unstakingPeriod, defaultTimeout);
 
-        IIsmpHost(host).setBridgeParams(params);
+        IIsmpHost(_host).setBridgeParams(params);
     }
 
     function onPostResponse(PostResponse memory response) external {

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {StateCommitment, StateMachineHeight, Consensus} from "./IConsensusClient.sol";
-import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout} from "./IIsmpDispatcher.sol";
+import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmpDispatcher.sol";
 
 struct BridgeParams {
     address admin;

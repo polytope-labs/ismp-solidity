@@ -42,7 +42,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
     Consensus private _consensus;
 
     // monotonically increasing nonce for outgoing requests
-    uint256 private _nonce;
+    uint64 private _nonce;
 
     // admin account, this only has the rights to freeze, or unfreeze the bridge
     address private _admin;
@@ -76,6 +76,11 @@ abstract contract IsmpHost is IIsmpHost, Context {
     );
 
     event GetRequestEvent(bytes source, bytes dest, bytes from, uint256 indexed nonce, uint256 timeoutTimestamp);
+
+    modifier onlyAdmin() {
+        require(_msgSender() == _admin, "ISMP_HOST: Only admin can call");
+        _;
+    }
 
     modifier onlyHandler() {
         require(_msgSender() == address(_handler), "ISMP_HOST: Only handler can call");
@@ -298,7 +303,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
 
     /**
      * @dev Dispatch an incoming get timeout to source module
-     * @param timeout - get timeout
+     * @param request - get request
      */
     function dispatchIncoming(GetRequest memory request) external onlyHandler {
         address origin = _bytesToAddress(request.from);
@@ -315,7 +320,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param timeout - post timeout
      */
     function dispatchIncoming(PostTimeout memory timeout) external onlyHandler {
-        PostRequest request = timeout.request;
+        PostRequest memory request = timeout.request;
         address origin = _bytesToAddress(request.from);
         require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onPostTimeout(request);
@@ -331,22 +336,22 @@ abstract contract IsmpHost is IIsmpHost, Context {
      */
     function dispatch(DispatchPost memory request) external {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
-        PostRequest memory request = PostRequest(
+        uint64 timeout = uint64(Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp));
+        PostRequest memory _request = PostRequest(
             host(), request.destChain, _nextNonce(), request.from, request.to, timeout, request.body, request.gaslimit
         );
         // make the commitment
-        bytes32 commitment = Message.hash(request);
+        bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
 
         emit PostRequestEvent(
-            request.source,
-            request.dest,
-            request.from,
-            abi.encodePacked(request.to),
-            request.nonce,
-            request.timeoutTimestamp,
-            request.body
+            _request.source,
+            _request.dest,
+            _request.from,
+            abi.encodePacked(_request.to),
+            _request.nonce,
+            _request.timeoutTimestamp,
+            _request.body
         );
     }
 
@@ -356,8 +361,8 @@ abstract contract IsmpHost is IIsmpHost, Context {
      */
     function dispatch(DispatchGet memory request) external {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
-        GetRequest memory request = GetRequest(
+        uint64 timeout = uint64(Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp));
+        GetRequest memory _request = GetRequest(
             host(),
             request.destChain,
             _nextNonce(),
@@ -369,10 +374,10 @@ abstract contract IsmpHost is IIsmpHost, Context {
         );
 
         // make the commitment
-        bytes32 commitment = Message.hash(request);
+        bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
 
-        emit GetRequestEvent(request.source, request.dest, request.from, request.nonce, request.timeoutTimestamp);
+        emit GetRequestEvent(_request.source, _request.dest, _request.from, _request.nonce, _request.timeoutTimestamp);
     }
 
     /**
@@ -402,7 +407,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @dev Get next available nonce for outgoing requests.
      */
-    function _nextNonce() private returns (uint256) {
+    function _nextNonce() private returns (uint64) {
         unchecked {
             ++_nonce;
         }
@@ -413,9 +418,9 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @dev Converts bytes to address.
      * @param _bytes bytes value to be converted
-     * @return returns the address
+     * @return addr returns the address
      */
-    function _bytesToAddress(bytes memory _bytes) private returns (address addr) {
+    function _bytesToAddress(bytes memory _bytes) private pure returns (address addr) {
         require(_bytes.length >= 20, "Invalid address length");
         assembly {
             addr := mload(add(_bytes, 20))
