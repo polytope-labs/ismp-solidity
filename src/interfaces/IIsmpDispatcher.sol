@@ -181,51 +181,34 @@ interface IIsmpDispatcher {
 
 library Message {
     function hash(PostResponse memory res) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    res.request.source,
-                    res.request.dest,
-                    res.request.nonce,
-                    res.request.timeoutTimestamp,
-                    res.request.body,
-                    res.request.from,
-                    res.request.to,
-                    res.response
-                )
-            );
+        return keccak256(
+            abi.encodePacked(
+                res.request.source,
+                res.request.dest,
+                res.request.nonce,
+                res.request.timeoutTimestamp,
+                res.request.body,
+                res.request.from,
+                res.request.to,
+                res.response
+            )
+        );
     }
 
     function hash(PostRequest memory req) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    req.source,
-                    req.dest,
-                    req.nonce,
-                    req.timeoutTimestamp,
-                    req.from,
-                    req.to,
-                    req.body,
-                    req.gaslimit
-                )
-            );
+        return keccak256(
+            abi.encodePacked(
+                req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
+            )
+        );
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
         bytes memory keysEncoding = abi.encode(req.keys);
-        return
-            keccak256(
-                abi.encodePacked(
-                    req.source,
-                    req.dest,
-                    req.nonce,
-                    req.height,
-                    req.timeoutTimestamp,
-                    req.from,
-                    keysEncoding,
-                    req.gaslimit
-                )
-            );
+        return keccak256(
+            abi.encodePacked(
+                req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding, req.gaslimit
+            )
+        );
     }
 }
