@@ -42,7 +42,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
     Consensus private _consensus;
 
     // monotonically increasing nonce for outgoing requests
-    uint64 private _nonce;
+    uint256 private _nonce;
 
     // admin account, this only has the rights to freeze, or unfreeze the bridge
     address private _admin;
@@ -338,7 +338,14 @@ abstract contract IsmpHost is IIsmpHost, Context {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint64 timeout = uint64(Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp));
         PostRequest memory _request = PostRequest(
-            host(), request.destChain, _nextNonce(), request.from, request.to, timeout, request.body, request.gaslimit
+            host(),
+            request.destChain,
+            uint64(_nextNonce()),
+            request.from,
+            request.to,
+            timeout,
+            request.body,
+            request.gaslimit
         );
         // make the commitment
         bytes32 commitment = Message.hash(_request);
@@ -365,7 +372,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
         GetRequest memory _request = GetRequest(
             host(),
             request.destChain,
-            _nextNonce(),
+            uint64(_nextNonce()),
             request.from,
             timeout,
             request.keys,
@@ -407,7 +414,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @dev Get next available nonce for outgoing requests.
      */
-    function _nextNonce() private returns (uint64) {
+    function _nextNonce() private returns (uint256) {
         unchecked {
             ++_nonce;
         }

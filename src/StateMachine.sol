@@ -8,32 +8,32 @@ library StateMachine {
     uint256 public constant RELAY_CHAIN = 0;
 
     // Address a state machine on the polkadot relay chain
-    function polkadot(uint256 id) public returns (bytes memory) {
+    function polkadot(uint256 id) public pure returns (bytes memory) {
         return bytes(string.concat("POLKADOT-", Strings.toString(id)));
     }
 
     // Address a state machine on the kusama relay chain
-    function kusama(uint256 id) public returns (bytes memory) {
+    function kusama(uint256 id) public pure returns (bytes memory) {
         return bytes(string.concat("KUSAMA-", Strings.toString(id)));
     }
 
     // Address the ethereum "execution layer"
-    function ethereum() public returns (bytes memory) {
+    function ethereum() public pure returns (bytes memory) {
         return bytes("ETH");
     }
 
     // Address the Arbitrum state machine
-    function arbitrum() public returns (bytes memory) {
+    function arbitrum() public pure returns (bytes memory) {
         return bytes("ARB");
     }
 
     // Address the Optimism state machine
-    function optimism() public returns (bytes memory) {
+    function optimism() public pure returns (bytes memory) {
         return bytes("OP");
     }
 
     // Address the Base state machine
-    function base() public returns (bytes memory) {
+    function base() public pure returns (bytes memory) {
         return bytes("BASE");
     }
 }

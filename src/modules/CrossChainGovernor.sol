@@ -7,9 +7,7 @@ import "../interfaces/IIsmpModule.sol";
 import "../interfaces/IIsmpHost.sol";
 import "../StateMachine.sol";
 
-
 contract CrossChainGovernor is IIsmpModule {
-
     using Bytes for bytes;
 
     address private _host;
@@ -20,7 +18,7 @@ contract CrossChainGovernor is IIsmpModule {
         _;
     }
 
-    constructor (address host, uint256 paraId){
+    constructor(address host, uint256 paraId) {
         _host = host;
         _paraId = paraId;
     }
@@ -42,19 +40,19 @@ contract CrossChainGovernor is IIsmpModule {
         IIsmpHost(_host).setBridgeParams(params);
     }
 
-    function onPostResponse(PostResponse memory response) external {
+    function onPostResponse(PostResponse memory response) external pure {
         revert("Module doesn't emit requests");
     }
 
-    function onGetResponse(GetResponse memory response) external {
-        revert("Module doesn't emit requests");
+    function onGetResponse(GetResponse memory response) external pure {
+        revert("Module doesn't emit response");
     }
 
-    function onPostTimeout(PostRequest memory request) external {
-        revert("Module doesn't emit requests");
+    function onPostTimeout(PostRequest memory request) external pure {
+        revert("Module doesn't emit timeout");
     }
 
-    function onGetTimeout(GetRequest memory request) external {
-        revert("Module doesn't emit requests");
+    function onGetTimeout(GetRequest memory request) external pure {
+        revert("Module doesn't emit timeout");
     }
 }
