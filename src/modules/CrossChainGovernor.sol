@@ -7,7 +7,6 @@ import "../interfaces/IIsmpModule.sol";
 import "../interfaces/IIsmpHost.sol";
 import "../StateMachine.sol";
 
-
 contract CrossChainGovernor is IIsmpModule {
     address private host;
     uint256 private paraId;

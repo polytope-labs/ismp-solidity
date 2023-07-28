@@ -333,7 +333,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
         PostRequest memory request = PostRequest(
-            host(), request.destChain, _nextNonce(), request.from, request.to, timeout, request.body, request.gaslimit
+            host(), request.dest, _nextNonce(), request.from, request.to, timeout, request.body, request.gaslimit
         );
         // make the commitment
         bytes32 commitment = Message.hash(request);
@@ -358,14 +358,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
         GetRequest memory request = GetRequest(
-            host(),
-            request.destChain,
-            _nextNonce(),
-            request.from,
-            timeout,
-            request.keys,
-            request.height,
-            request.gaslimit
+            host(), request.dest, _nextNonce(), request.from, timeout, request.keys, request.height, request.gaslimit
         );
 
         // make the commitment
