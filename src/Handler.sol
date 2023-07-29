@@ -14,7 +14,7 @@ abstract contract Handler is IHandler, Context {
     using Bytes for bytes;
 
     modifier notFrozen(IIsmpHost host) {
-        require(!host.frozen(), "ISMP_Handler: frozen");
+        require(!host.frozen(), "IHandler: frozen");
         _;
     }
 
@@ -26,13 +26,13 @@ abstract contract Handler is IHandler, Context {
     function handleConsensus(IIsmpHost host, bytes memory proof) external notFrozen(host) {
         require(
             (host.hostTimestamp() - host.consensusUpdateTime()) > host.challengePeriod(),
-            "ISMP_Handler: still in challenge period"
+            "IHandler: still in challenge period"
         );
 
         // not today, time traveling validators
         require(
             (host.hostTimestamp() - host.consensusUpdateTime()) < host.unStakingPeriod() || _msgSender() == host.admin(),
-            "ISMP_Handler: still in challenge period"
+            "IHandler: still in challenge period"
         );
 
         (bytes memory verifiedState, IntermediateState[] memory intermediates) =
@@ -57,7 +57,7 @@ abstract contract Handler is IHandler, Context {
      */
     function handlePostRequests(IIsmpHost host, PostRequestMessage memory request) external notFrozen(host) {
         uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(request.proof.height);
-        require(delay > host.challengePeriod(), "ISMP_Handler: still in challenge period");
+        require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         uint256 requestsLen = request.requests.length;
         MmrLeaf[] memory leaves = new MmrLeaf[](requestsLen);
@@ -65,12 +65,12 @@ abstract contract Handler is IHandler, Context {
         for (uint256 i = 0; i < requestsLen; i++) {
             PostRequestLeaf memory leaf = request.requests[i];
 
-            require(!leaf.request.dest.equals(host.host()), "ISMP_Handler: Invalid request destination");
+            require(!leaf.request.dest.equals(host.host()), "IHandler: Invalid request destination");
 
-            require(leaf.request.timeoutTimestamp < host.hostTimestamp(), "ISMP_Handler: Request timed out");
+            require(leaf.request.timeoutTimestamp < host.hostTimestamp(), "IHandler: Request timed out");
 
             bytes32 commitment = Message.hash(leaf.request);
-            require(!host.requestReceipts(commitment), "ISMP_Handler: Duplicate request");
+            require(!host.requestReceipts(commitment), "IHandler: Duplicate request");
 
             uint256 mmrPos = MerkleMountainRange.leafIndexToPos(uint64(leaf.mmrIndex));
             leaves[i] = MmrLeaf(leaf.kIndex, mmrPos, commitment);
@@ -78,10 +78,10 @@ abstract contract Handler is IHandler, Context {
 
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
-        require(root != bytes32(0), "ISMP_Handler: Proof height not found!");
+        require(root != bytes32(0), "IHandler: Proof height not found!");
         require(
             MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
-            "ISMP_Handler: Invalid request proofs"
+            "IHandler: Invalid request proofs"
         );
 
         for (uint256 i = 0; i < requestsLen; i++) {
@@ -97,20 +97,20 @@ abstract contract Handler is IHandler, Context {
      */
     function handlePostResponses(IIsmpHost host, PostResponseMessage memory response) external notFrozen(host) {
         uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(response.proof.height);
-        require(delay > host.challengePeriod(), "ISMP_Handler: still in challenge period");
+        require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         uint256 responsesLength = response.responses.length;
         MmrLeaf[] memory leaves = new MmrLeaf[](responsesLength);
 
         for (uint256 i = 0; i < responsesLength; i++) {
             PostResponseLeaf memory leaf = response.responses[i];
-            require(leaf.response.request.source.equals(host.host()), "ISMP_Handler: Invalid response destination");
+            require(leaf.response.request.source.equals(host.host()), "IHandler: Invalid response destination");
 
             bytes32 requestCommitment = Message.hash(leaf.response.request);
-            require(host.requestCommitments(requestCommitment), "ISMP_Handler: Unknown request");
+            require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
 
             bytes32 responseCommitment = Message.hash(leaf.response);
-            require(!host.responseCommitments(responseCommitment), "ISMP_Handler: Duplicate response");
+            require(!host.responseCommitments(responseCommitment), "IHandler: Duplicate Post response");
 
             uint256 mmrPos = MerkleMountainRange.leafIndexToPos(uint64(leaf.mmrIndex));
             leaves[i] = MmrLeaf(leaf.kIndex, mmrPos, responseCommitment);
@@ -118,10 +118,10 @@ abstract contract Handler is IHandler, Context {
 
         bytes32 root = host.stateMachineCommitment(response.proof.height).overlayRoot;
 
-        require(root != bytes32(0), "ISMP_Handler: Proof height not found!");
+        require(root != bytes32(0), "IHandler: Proof height not found!");
         require(
             MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
-            "ISMP_Handler: Invalid response proofs"
+            "IHandler: Invalid response proofs"
         );
 
         for (uint256 i = 0; i < responsesLength; i++) {
@@ -137,29 +137,26 @@ abstract contract Handler is IHandler, Context {
      */
     function handleGetResponses(IIsmpHost host, GetResponseMessage memory message) external {
         uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(message.height);
-        require(delay > host.challengePeriod(), "ISMP_Handler: still in challenge period");
+        require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         StateCommitment memory stateCommitment = host.stateMachineCommitment(message.height);
         bytes32 root = stateCommitment.stateRoot;
-        require(root != bytes32(0), "ISMP_Handler: Proof height not found!");
+        require(root != bytes32(0), "IHandler: Proof height not found!");
 
         uint256 responsesLength = message.requests.length;
         bytes[] memory proof = message.proof;
 
         for (uint256 i = 0; i < responsesLength; i++) {
             GetRequest memory request = message.requests[i];
-
-            require(request.source.equals(host.host()), "ISMP_Handler: Invalid response destination");
+            require(request.source.equals(host.host()), "IHandler: Invalid GET response destination");
 
             bytes32 requestCommitment = Message.hash(request);
-            require(host.requestCommitments(requestCommitment), "ISMP_Handler: Unknown request");
+            require(host.requestCommitments(requestCommitment), "IHandler: Unknown GET request");
+            require(request.timeoutTimestamp < host.hostTimestamp(), "IHandler: GET request timed out");
 
-            require(request.timeoutTimestamp < host.hostTimestamp(), "ISMP_Handler: Request timed out");
-            // todo: check duplicate response
-
-            // todo: use child trie.
-            StorageValue[] memory values = MerklePatricia.VerifySubstrateProof(root, proof, request.keys);
+            StorageValue[] memory values = MerklePatricia.ReadChildProofCheck(root, proof, request.keys, bytes(requestCommitment));
             GetResponse memory response = GetResponse({request: request, values: values});
+            require(!host.responseCommitments(Message.Hash(response)), "IHandler: Duplicate GET response");
             host.dispatchIncoming(response);
         }
     }
@@ -184,7 +181,7 @@ abstract contract Handler is IHandler, Context {
 
             StorageValue memory entry =
                 MerklePatricia.VerifySubstrateProof(commitment.stateRoot, keys, message.proof)[0];
-            require(entry.value.equals(new bytes(0)), "ISMP_Handler: Invalid non-membership proof");
+            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
 
             host.dispatchIncoming(PostTimeout(request));
         }
@@ -201,9 +198,9 @@ abstract contract Handler is IHandler, Context {
         for (uint256 i = 0; i < timeoutsLength; i++) {
             GetRequest memory request = message.timeouts[i];
             bytes32 requestCommitment = Message.hash(request);
-            require(host.requestCommitments(requestCommitment), "ISMP_Handler: Unknown request");
+            require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
 
-            require(host.hostTimestamp() > request.timeoutTimestamp, "Request not timed out");
+            require(host.hostTimestamp() > request.timeoutTimestamp, "IHandler: GET request not timed out");
             host.dispatchIncoming(request);
         }
     }

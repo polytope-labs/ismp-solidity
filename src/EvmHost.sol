@@ -293,7 +293,9 @@ abstract contract EvmHost is IIsmpHost, Context {
         address origin = _bytesToAddress(response.request.from);
         require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onGetResponse(response);
-        // todo: store response commitment
+
+        bytes32 commitment = Message.Hash(response);
+        _responseCommitments[commitment] = true;
     }
 
     /**
