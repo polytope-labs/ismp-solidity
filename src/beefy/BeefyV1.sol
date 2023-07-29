@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 import "./Codec.sol";
-import "./Schema.sol";
+import "../interfaces/StateMachine.sol";
+import "../interfaces/IConsensusClient.sol";
 
 import "solidity-merkle-trees/MerkleMultiProof.sol";
 import "solidity-merkle-trees/MerkleMountainRange.sol";
@@ -12,7 +13,6 @@ import "solidity-merkle-trees/trie/Bytes.sol";
 import "openzeppelin/utils/cryptography/ECDSA.sol";
 import "openzeppelin/utils/cryptography/MerkleProof.sol";
 import "openzeppelin/utils/Strings.sol";
-import "../interfaces/IConsensusClient.sol";
 
 struct BeefyConsensusState {
     /// block number for the latest mmr_root_hash
@@ -277,7 +277,7 @@ contract BeefyV1 is IConsensusClient {
             );
 
             intermediates[i] =
-                IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
+                IntermediateState(StateMachine.polkadot(para.id), header.number, StateCommitment(timestamp, commitment, header.stateRoot));
         }
 
         require(
