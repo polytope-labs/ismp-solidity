@@ -134,10 +134,8 @@ struct PostResponseMessage {
 // An object for dispatching post requests to the IsmpDispatcher
 struct DispatchPost {
     // bytes representation of the destination chain
-    bytes destChain;
-    // the source module
-    bytes from;
-    // the detination module
+    bytes dest;
+    // the destination module
     bytes to;
     // the request body
     bytes body;
@@ -150,9 +148,7 @@ struct DispatchPost {
 // An object for dispatching get requests to the IsmpDispatcher
 struct DispatchGet {
     // bytes representation of the destination chain
-    bytes destChain;
-    // the source module
-    bytes from;
+    bytes dest;
     // height at which to read the state machine
     uint64 height;
     // Storage keys to read

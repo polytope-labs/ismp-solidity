@@ -14,9 +14,9 @@ library SubstrateHost {
      * @dev Dispatch a POST request to the ISMP host.
      * @param request - post request
      */
-    function dispatch(DispatchPost memory request) internal {
+    function dispatch(DispatchPost memory request) internal view {
         bytes memory input =
-            abi.encode(request.destChain, request.to, request.body, request.timeoutTimestamp, request.gaslimit);
+            abi.encode(request.dest, request.to, request.body, request.timeoutTimestamp, request.gaslimit);
 
         (bool ok, bytes memory out) = address(POST_REQUEST_DISPATCHER).staticcall(input);
 
@@ -29,9 +29,9 @@ library SubstrateHost {
      * @dev Dispatch a GET request to the ISMP host.
      * @param request - get request
      */
-    function dispatch(DispatchGet memory request) internal {
+    function dispatch(DispatchGet memory request) internal view {
         bytes memory input =
-            abi.encode(request.destChain, request.height, request.keys, request.timeoutTimestamp, request.gaslimit);
+            abi.encode(request.dest, request.height, request.keys, request.timeoutTimestamp, request.gaslimit);
 
         (bool ok, bytes memory out) = address(GET_REQUEST_DISPATCHER).staticcall(input);
 
@@ -44,11 +44,8 @@ library SubstrateHost {
      * @dev Provide a response to a previously received request.
      * @param response - post response
      */
-    function dispatch(PostResponse memory response) internal {
-        bytes memory input = abi.encode(
-            response.request.dest, response.request.to, response.request.body, response.request.timeoutTimestamp
-        );
-
+    function dispatch(PostResponse memory response) internal view {
+        bytes memory input = abi.encode(response.request, response.response);
         (bool ok, bytes memory out) = address(POST_RESPONSE_DISPATCHER).staticcall(input);
 
         if (!ok) {
