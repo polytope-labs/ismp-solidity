@@ -18,20 +18,21 @@ struct StateCommitment {
 // as some consensus clients may track multiple, concurrent state machines.
 struct StateMachineHeight {
     // the state machine identifier
-    uint256 stateMachineId; // TODO: Subject to change/review
+    bytes stateMachineId;
     // height of this state machine
     uint256 height;
 }
 
 struct IntermediateState {
     // the state machine identifier
-    uint256 stateMachineId;
+    bytes stateMachineId;
     // height of this state machine
     uint256 height;
     // state commitment
     StateCommitment commitment;
 }
 
+// Consensus client contract address and related metadata
 struct Consensus {
     // consensus client contract
     address client;
@@ -39,6 +40,10 @@ struct Consensus {
     bytes state;
     // timestamp for when the consensus was most recently updated
     uint256 lastUpdated;
+    // unstaking period
+    uint256 unStakingPeriod;
+    // minimum challenge period in seconds;
+    uint256 challengePeriod;
 }
 
 interface IConsensusClient {
@@ -48,9 +53,4 @@ interface IConsensusClient {
         external
         pure
         returns (bytes memory, IntermediateState[] memory);
-
-    function verifyStateProof(bytes32 root, bytes[] memory keys, bytes[] memory proof)
-        external
-        pure
-        returns (StorageValue[] memory);
 }

@@ -4,7 +4,8 @@ pragma solidity ^0.8.0;
 import "solidity-merkle-trees/MerkleMultiProof.sol";
 import "solidity-merkle-trees/trie/substrate/ScaleCodec.sol";
 import "solidity-merkle-trees/trie/Bytes.sol";
-import "./Schema.sol";
+import "./Header.sol";
+import "./BeefyV1.sol";
 
 /// type encoding stuff
 library Codec {

@@ -79,9 +79,8 @@ abstract contract Handler is IHandler, Context {
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "ISMP_Handler: Proof height not found!");
-        bytes32[] memory proof = abi.decode(request.proof.multiproof, (bytes32[]));
         require(
-            MerkleMountainRange.VerifyProof(root, proof, leaves, request.proof.mmrSize),
+            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
             "ISMP_Handler: Invalid request proofs"
         );
 
@@ -178,9 +177,9 @@ abstract contract Handler is IHandler, Context {
         for (uint256 i = 0; i < timeoutsLength; i++) {
             PostRequest memory request = message.timeouts[i];
 
-            require(request.timeoutTimestamp > commitment.timestamp);
+            require(commitment.timestamp > request.timeoutTimestamp, "Request not timed out");
 
-            // Todo: temporary placeholder for post request
+            // Todo: convert request commitment to storage key
             bytes[] memory keys;
 
             StorageValue memory entry =
@@ -200,8 +199,12 @@ abstract contract Handler is IHandler, Context {
         uint256 timeoutsLength = message.timeouts.length;
 
         for (uint256 i = 0; i < timeoutsLength; i++) {
-            GetRequest memory timeout = message.timeouts[i];
-            host.dispatchIncoming(timeout);
+            GetRequest memory request = message.timeouts[i];
+            bytes32 requestCommitment = Message.hash(request);
+            require(host.requestCommitments(requestCommitment), "ISMP_Handler: Unknown request");
+
+            require(host.hostTimestamp() > request.timeoutTimestamp, "Request not timed out");
+            host.dispatchIncoming(request);
         }
     }
 }

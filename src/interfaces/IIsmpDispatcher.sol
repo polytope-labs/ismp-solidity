@@ -142,9 +142,9 @@ struct DispatchPost {
     // the request body
     bytes body;
     // the timestamp at which this request should timeout
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // gas limit for executing this request on destination & its response (if any) on the source.
-    uint256 gaslimit;
+    uint64 gaslimit;
 }
 
 // An object for dispatching get requests to the IsmpDispatcher
@@ -154,13 +154,13 @@ struct DispatchGet {
     // the source module
     bytes from;
     // height at which to read the state machine
-    uint256 height;
+    uint64 height;
     // Storage keys to read
     bytes[] keys;
     // the timestamp at which this request should timeout
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // gas limit for executing this request on destination & its response (if any) on the source.
-    uint256 gaslimit;
+    uint64 gaslimit;
 }
 
 interface IIsmpDispatcher {

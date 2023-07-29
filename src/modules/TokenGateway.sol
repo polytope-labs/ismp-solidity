@@ -7,6 +7,7 @@ import "openzeppelin/utils/introspection/IERC165.sol";
 import "multichain-token/interfaces/IERC6160Ext20.sol";
 import {IERC_ACL_CORE} from "multichain-token/interfaces/IERCAclCore.sol";
 import "../interfaces/IIsmpDispatcher.sol";
+import "../interfaces/IIsmpHost.sol";
 
 //
 // Add supports interface for custom bride token
@@ -88,16 +89,32 @@ contract TokenGateway is IIsmpModule {
         }
     }
 
-    // // // The Gateway contract has to have the roles `MINTER` and `BURNER`.
-    // function send(bytes memory stateMachine, uint256 tokenId, uint256 amount, address to, bytes memory module) public {
-    //     // USDC -> HyperUSDC(ERC6160)
-    //     address tokenAddress = tokenIds[tokenId];
-
-    //     // check permision at set token.
-    //     IERC6160Ext20(tokenAddress).burn(msg.sender, amount, "");
-    //     bytes memory data = abi.encodePacked(to, amount, tokenId);
-    //     IIsmpDispatcher(host).dispatch(DispatchRequest(stateMachine, module, data));
-    // }
+    // The Gateway contract has to have the roles `MINTER` and `BURNER`.
+    function send(
+        bytes memory stateMachine,
+        uint256 tokenId,
+        uint256 amount,
+        address to,
+        bytes memory module,
+        uint64 timestamp,
+        uint64 gasLimit
+    ) public {
+        // USDC -> HyperUSDC(ERC6160)
+        address tokenAddress = tokenIds[tokenId];
+        // check permision at set token.
+        IERC6160Ext20(tokenAddress).burn(msg.sender, amount, "");
+        bytes memory data = abi.encodePacked(to, amount, tokenId);
+        bytes memory source = IIsmpHost(host).host();
+        DispatchPost memory postRequest = DispatchPost({
+            destChain: stateMachine,
+            from: source,
+            to: module,
+            body: data,
+            timeoutTimestamp: timestamp,
+            gaslimit: gasLimit
+        });
+        IIsmpDispatcher(host).dispatch(postRequest);
+    }
 
     function onAccept(PostRequest memory request) public onlyDispatcher {
         (address to, uint256 amount, uint256 tokenId) = _decodePackedData(request.body);
@@ -106,17 +123,25 @@ contract TokenGateway is IIsmpModule {
         IERC6160Ext20(tokenAddress).mint(to, amount, "");
     }
 
-    function onResponse(PostResponse memory response) public onlyDispatcher {
+    function onPostResponse(PostResponse memory response) public view onlyDispatcher {
         revert("Token gateway doesn't emit responses");
     }
 
-    function onTimeout(PostRequest memory request) public onlyDispatcher {
+    function onPostTimeout(PostRequest memory request) public onlyDispatcher {
         (address to, uint256 amount, uint256 tokenId) = _decodePackedData(request.body);
         address tokenAddress = tokenIds[tokenId];
 
         if (tokenAddress == address(0)) revert ZeroAddress();
 
         IERC6160Ext20(tokenAddress).mint(to, amount, "");
+    }
+
+    function onGetResponse(GetResponse memory response) public view onlyDispatcher {
+        revert("Not implemented");
+    }
+
+    function onGetTimeout(GetRequest memory request) public view onlyDispatcher {
+        revert("Not implemented");
     }
 
     function _decodePackedData(bytes memory data)
