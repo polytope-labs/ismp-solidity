@@ -15,8 +15,7 @@ library SubstrateHost {
      * @param request - post request
      */
     function dispatch(DispatchPost memory request) internal view {
-        bytes memory input =
-            abi.encode(request.dest, request.to, request.body, request.timeoutTimestamp, request.gaslimit);
+        bytes memory input = abi.encode(request.dest, request.to, request.body, request.timeout, request.gaslimit);
 
         (bool ok, bytes memory out) = address(POST_REQUEST_DISPATCHER).staticcall(input);
 
@@ -30,8 +29,7 @@ library SubstrateHost {
      * @param request - get request
      */
     function dispatch(DispatchGet memory request) internal view {
-        bytes memory input =
-            abi.encode(request.dest, request.height, request.keys, request.timeoutTimestamp, request.gaslimit);
+        bytes memory input = abi.encode(request.dest, request.height, request.keys, request.timeout, request.gaslimit);
 
         (bool ok, bytes memory out) = address(GET_REQUEST_DISPATCHER).staticcall(input);
 

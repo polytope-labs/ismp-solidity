@@ -18,14 +18,14 @@ struct StateCommitment {
 // as some consensus clients may track multiple, concurrent state machines.
 struct StateMachineHeight {
     // the state machine identifier
-    bytes stateMachineId;
+    uint256 stateMachineId;
     // height of this state machine
     uint256 height;
 }
 
 struct IntermediateState {
     // the state machine identifier
-    bytes stateMachineId;
+    uint256 stateMachineId;
     // height of this state machine
     uint256 height;
     // state commitment

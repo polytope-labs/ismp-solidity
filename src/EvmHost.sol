@@ -6,8 +6,6 @@ import "openzeppelin/utils/introspection/IERC165.sol";
 import "openzeppelin/utils/Context.sol";
 import "openzeppelin/utils/math/Math.sol";
 
-import "./consensus/Schema.sol";
-import "./consensus/Beefy.sol";
 import "./interfaces/IISMPModule.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IHandler.sol";
@@ -18,9 +16,9 @@ struct HostParams {
     // admin account, this only has the rights to freeze, or unfreeze the bridge
     address admin;
     // Ismp request/response handler
-    IHandler handler;
+    address handler;
     // the authorized cross-chain governor contract
-    IIsmpModule crosschainGovernor;
+    address crosschainGovernor;
 }
 
 /// Ismp implementation for Evm hosts
@@ -74,23 +72,23 @@ abstract contract EvmHost is IIsmpHost, Context {
     event GetRequestEvent(bytes source, bytes dest, bytes from, uint256 indexed nonce, uint256 timeoutTimestamp);
 
     modifier onlyAdmin() {
-        require(_msgSender() == _admin, "ISMP_HOST: Only admin");
+        require(_msgSender() == _hostParams.admin, "EvmHost: Only admin");
         _;
     }
 
     modifier onlyHandler() {
-        require(_msgSender() == address(_handler), "ISMP_HOST: Only handler");
+        require(_msgSender() == address(_hostParams.handler), "EvmHost: Only handler");
         _;
     }
 
     modifier onlyGovernance() {
-        require(_msgSender() == _hostParams.crosschainGovernor, "ISMP_HOST: Only governor contract");
+        require(_msgSender() == _hostParams.crosschainGovernor, "EvmHost: Only governor contract");
         _;
     }
 
-    constructor(HostParams params, Consensus memory initial) {
+    constructor(HostParams memory params, Consensus memory initial) {
         _consensus = initial;
-        _bridgeParams = params;
+        _hostParams = params;
     }
 
     /**
@@ -108,7 +106,7 @@ abstract contract EvmHost is IIsmpHost, Context {
     /**
      * @return the host timestamp
      */
-    function hostTimestamp() public view returns (uint256) {
+    function timestamp() public view returns (uint256) {
         return block.timestamp;
     }
 
@@ -207,7 +205,7 @@ abstract contract EvmHost is IIsmpHost, Context {
 
         _hostParams.admin = params.admin;
         _hostParams.defaultTimeout = params.defaultTimeout;
-        _hostParams.handler = IHandler(params.handler);
+        _hostParams.handler = params.handler;
     }
 
     /**
@@ -220,8 +218,8 @@ abstract contract EvmHost is IIsmpHost, Context {
     /**
      * @dev Store the timestamp when the consensus client was updated
      */
-    function storeConsensusUpdateTime(uint256 timestamp) external onlyHandler {
-        _consensus.lastUpdated = timestamp;
+    function storeConsensusUpdateTime(uint256 time) external onlyHandler {
+        _consensus.lastUpdated = time;
     }
 
     /**
@@ -237,11 +235,11 @@ abstract contract EvmHost is IIsmpHost, Context {
     /**
      * @dev Store the timestamp when the state machine was updated
      */
-    function storeStateMachineCommitmentUpdateTime(StateMachineHeight memory height, uint256 timestamp)
+    function storeStateMachineCommitmentUpdateTime(StateMachineHeight memory height, uint256 time)
         external
         onlyHandler
     {
-        _stateCommitmentsUpdateTime[height.stateMachineId][height.height] = timestamp;
+        _stateCommitmentsUpdateTime[height.stateMachineId][height.height] = time;
     }
 
     /**
@@ -265,7 +263,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostRequest memory request) external onlyHandler {
         address destination = _bytesToAddress(request.to);
-        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
+        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
         IIsmpModule(destination).onAccept(request);
 
         bytes32 commitment = Message.hash(request);
@@ -278,7 +276,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
+        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
         IIsmpModule(origin).onPostResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -291,10 +289,10 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
+        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
         IIsmpModule(origin).onGetResponse(response);
 
-        bytes32 commitment = Message.Hash(response);
+        bytes32 commitment = Message.hash(response);
         _responseCommitments[commitment] = true;
     }
 
@@ -304,7 +302,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetRequest memory request) external onlyHandler {
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
+        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
         IIsmpModule(origin).onGetTimeout(request);
 
         // Delete Commitment
@@ -319,7 +317,7 @@ abstract contract EvmHost is IIsmpHost, Context {
     function dispatchIncoming(PostTimeout memory timeout) external onlyHandler {
         PostRequest memory request = timeout.request;
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
+        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
         IIsmpModule(origin).onPostTimeout(request);
 
         // Delete Commitment
@@ -333,12 +331,12 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatch(DispatchPost memory request) external {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint64 timeout = uint64(Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp));
+        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         PostRequest memory _request = PostRequest(
             host(),
-            request.destChain,
+            request.dest,
             uint64(_nextNonce()),
-            request.from,
+            abi.encodePacked(_msgSender()),
             request.to,
             timeout,
             request.body,
@@ -356,7 +354,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.nonce,
             _request.timeoutTimestamp,
             _request.body
-            );
+        );
     }
 
     /**
@@ -365,12 +363,12 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatch(DispatchGet memory request) external {
         require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint64 timeout = uint64(Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp));
+        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         GetRequest memory _request = GetRequest(
             host(),
-            request.destChain,
+            request.dest,
             uint64(_nextNonce()),
-            request.from,
+            abi.encodePacked(_msgSender()),
             timeout,
             request.keys,
             request.height,
@@ -389,9 +387,9 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: invalid module");
+        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: invalid module");
         bytes32 receipt = Message.hash(response.request);
-        require(_requestReceipts[receipt], "ISMP_HOST: unknown request");
+        require(_requestReceipts[receipt], "EvmHost: unknown request");
 
         bytes32 commitment = Message.hash(response);
         _responseCommitments[commitment] = true;

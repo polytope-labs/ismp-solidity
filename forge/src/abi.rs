@@ -62,11 +62,11 @@ impl From<MmrProof> for RelayChainProof {
                     block_number: value.signed_commitment.commitment.block_number.into(),
                     validator_set_id: value.signed_commitment.commitment.validator_set_id.into(),
                 },
-                signatures: value
+                votes: value
                     .signed_commitment
                     .signatures
                     .into_iter()
-                    .map(|a| Signature {
+                    .map(|a| Vote {
                         signature: a.signature.to_vec().into(),
                         authority_index: a.index.into(),
                     })
@@ -109,9 +109,6 @@ impl From<ConsensusState> for BeefyConsensusState {
     fn from(value: ConsensusState) -> Self {
         BeefyConsensusState {
             latest_height: value.latest_beefy_height.into(),
-            latest_timestamp: Default::default(),
-            frozen_height: Default::default(),
-            latest_heads_root: Default::default(),
             beefy_activation_block: Default::default(),
             current_authority_set: value.current_authorities.into(),
             next_authority_set: value.next_authorities.into(),
@@ -142,8 +139,8 @@ impl From<IntermediateState> for local::IntermediateState {
     fn from(value: IntermediateState) -> Self {
         local::IntermediateState {
             height: local::StateMachineHeight {
-                state_machine_id: value.height.state_machine_id.as_u32(),
-                height: value.height.height.as_u32(),
+                state_machine_id: value.state_machine_id.as_u32(),
+                height: value.height.as_u32(),
             },
             commitment: local::StateCommitment {
                 timestamp: value.commitment.timestamp.as_u64(),

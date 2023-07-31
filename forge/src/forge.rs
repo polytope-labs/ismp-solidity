@@ -140,7 +140,7 @@ where
         libs,
     );
 
-    let setup = single_runner.setup(false).unwrap();
+    let setup = single_runner.setup(true).unwrap();
     let TestSetup { address, .. } = setup;
 
     let result = single_runner.executor.execute_test::<R, _, _>(

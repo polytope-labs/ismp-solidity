@@ -17,12 +17,6 @@ import "openzeppelin/utils/Strings.sol";
 struct BeefyConsensusState {
     /// block number for the latest mmr_root_hash
     uint256 latestHeight;
-    /// timestamp for the latest height
-    uint256 latestTimestamp;
-    /// Block height when the client was frozen due to a byzantine attack
-    uint256 frozenHeight;
-    /// Parachain heads root.
-    bytes32 latestHeadsRoot;
     /// Block number that the beefy protocol was activated on the relay chain.
     /// This should be the first block in the merkle-mountain-range tree.
     uint256 beefyActivationBlock;
@@ -122,6 +116,14 @@ contract BeefyV1 is IConsensusClient {
     /// ConsensusID for aura
     bytes4 public constant AURA_CONSENSUS_ID = bytes4("aura");
 
+    function verifyConsensus(bytes memory trustedState, bytes memory proof)
+        external
+        pure
+        returns (bytes memory, IntermediateState[] memory)
+    {
+        revert("unimplemented");
+    }
+
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.
     function verifyConsensus(BeefyConsensusState memory trustedState, BeefyConsensusProof memory proof)
@@ -129,15 +131,13 @@ contract BeefyV1 is IConsensusClient {
         pure
         returns (BeefyConsensusState memory, IntermediateState[] memory)
     {
-        require(trustedState.frozenHeight == 0, "Consensus client is frozen");
-
         // verify mmr root proofs
-        trustedState = verifyMmrUpdateProof(trustedState, proof.relay);
+        (BeefyConsensusState memory state, bytes32 headsRoot) = verifyMmrUpdateProof(trustedState, proof.relay);
 
         // verify intermediate state commitment proofs
-        IntermediateState[] memory intermediate = verifyParachainHeaderProof(trustedState, proof.parachain);
+        IntermediateState[] memory intermediate = verifyParachainHeaderProof(headsRoot, proof.parachain);
 
-        return (trustedState, intermediate);
+        return (state, intermediate);
     }
 
     /// Verifies a new Mmmr root update, the relay chain accumulates its blocks into a merkle mountain range tree
@@ -147,7 +147,7 @@ contract BeefyV1 is IConsensusClient {
     function verifyMmrUpdateProof(BeefyConsensusState memory trustedState, RelayChainProof memory relayProof)
         private
         pure
-        returns (BeefyConsensusState memory)
+        returns (BeefyConsensusState memory, bytes32)
     {
         uint256 signatures_length = relayProof.signedCommitment.votes.length;
         uint256 latestHeight = relayProof.signedCommitment.commitment.blockNumber;
@@ -220,9 +220,8 @@ contract BeefyV1 is IConsensusClient {
         }
 
         trustedState.latestHeight = latestHeight;
-        trustedState.latestHeadsRoot = relayProof.latestMmrLeaf.extra;
 
-        return trustedState;
+        return (trustedState, relayProof.latestMmrLeaf.extra);
     }
 
     /// Stack too deep, sigh solidity
@@ -230,19 +229,19 @@ contract BeefyV1 is IConsensusClient {
         private
         pure
     {
-        bytes32 leafHash = keccak256(Codec.Encode(relay.latestMmrLeaf));
-        uint256 leafIndex = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber);
-        uint256 mmrSize = MerkleMountainRange.leafIndexToMmrSize(uint64(leafIndex));
-        uint256 leafPos = MerkleMountainRange.leafIndexToPos(uint64(leafIndex));
+        bytes32 hash = keccak256(Codec.Encode(relay.latestMmrLeaf));
+        uint256 index = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber);
+        uint256 mmrSize = MerkleMountainRange.leafIndexToMmrSize(uint64(index));
+        uint256 pos = MerkleMountainRange.leafIndexToPos(uint64(index));
 
         MmrLeaf[] memory leaves = new MmrLeaf[](1);
-        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, leafPos, leafHash);
+        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, pos, hash);
 
         require(MerkleMountainRange.VerifyProof(mmrRoot, relay.mmrProof, leaves, mmrSize), "Invalid Mmr Proof");
     }
 
     /// Verifies that some parachain header has been finalized, given the current trusted consensus state.
-    function verifyParachainHeaderProof(BeefyConsensusState memory trustedState, ParachainProof memory proof)
+    function verifyParachainHeaderProof(bytes32 headsRoot, ParachainProof memory proof)
         private
         pure
         returns (IntermediateState[] memory)
@@ -276,12 +275,13 @@ contract BeefyV1 is IConsensusClient {
                 keccak256(bytes.concat(ScaleCodec.encode32(uint32(para.id)), ScaleCodec.encodeBytes(para.header)))
             );
 
-            intermediates[i] =
-                IntermediateState(StateMachine.polkadot(para.id), header.number, StateCommitment(timestamp, commitment, header.stateRoot));
+            intermediates[i] = IntermediateState(
+                para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot)
+            );
         }
 
         require(
-            MerkleMultiProof.VerifyProofSorted(trustedState.latestHeadsRoot, proof.proof, leaves),
+            MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves),
             "Invalid parachains heads proof"
         );
 
@@ -302,3 +302,4 @@ contract BeefyV1 is IConsensusClient {
         return len >= ((2 * total) / 3) + 1;
     }
 }
+

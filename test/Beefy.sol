@@ -9,11 +9,17 @@ contract BeefyConsensusClientTest is Test {
     // needs a test method so that forge can detect it
     function testConsensusClient() public {}
 
+    BeefyV1 internal beefy;
+
+    function setUp() public virtual {
+        beefy = new BeefyV1();
+    }
+
     function VerifyV1(BeefyConsensusState memory trustedConsensusState, BeefyConsensusProof memory proof)
         public
         returns (BeefyConsensusState memory, IntermediateState[] memory)
     {
-        return BeefyConsensusClient.verifyConsensus(trustedConsensusState, proof);
+        return beefy.verifyConsensus(trustedConsensusState, proof);
     }
 
     function DecodeHeader(bytes memory encoded) public pure returns (Header memory) {

@@ -1,8 +1,8 @@
 #![allow(unused_parens)]
 
 pub mod abi;
-mod beefy;
 mod forge;
+mod tests;
 
 pub use crate::forge::{execute, runner};
 pub use ethers::{abi::Token, types::U256, utils::keccak256};

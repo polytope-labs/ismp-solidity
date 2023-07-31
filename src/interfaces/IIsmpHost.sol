@@ -27,7 +27,7 @@ interface IIsmpHost is IIsmpDispatcher {
     /**
      * @return the host timestamp
      */
-    function hostTimestamp() external returns (uint256);
+    function timestamp() external returns (uint256);
 
     /**
      * @return the `frozen` status

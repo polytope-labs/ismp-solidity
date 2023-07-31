@@ -23,15 +23,17 @@ hex = "0.4.3"
 merkle-mountain-range = { package = "ckb-merkle-mountain-range", git = "https://github.com/polytope-labs/merkle-mountain-range", branch = "seun/simplified-mmr" }
 trie-db = "0.24.0"
 patricia-merkle-trie = { git = "https://github.com/polytope-labs/patricia-merkle-trie", branch = "main" }
+ismp-evm = { git = "https://github.com/polytope-labs/ismp-substrate", branch = "main" }
 primitive-types = "0.12.1"
 codec = { package = "parity-scale-codec", version = "3.2.2" }
 sp-core = "17.0.0"
+anyhow = "1.0.72"
 sp-runtime = "17.0.0"
 sp-trie = "17.0.0"
 libfuzzer-sys = "0.4.6"
 futures = "0.3.27"
-subxt = { git = "https://github.com/paritytech/subxt",  rev = "d92352ad739836a4100e1ef1db607acc82ed8c5a", features = ["substrate-compat"] }
+subxt = { version = "0.30.1", features = ["substrate-compat"] }
 tokio = { version = "1.17.0", features = ["full"] }
-beefy-prover = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.38" }
-beefy-verifier-primitives = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.38" }
-beefy-primitives = { package = "sp-beefy", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38" }
+beefy-prover = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42" }
+beefy-verifier-primitives = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42" }
+beefy-primitives = { package = "sp-consensus-beefy", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42" }

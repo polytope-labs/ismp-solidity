@@ -18,6 +18,9 @@ abstract contract Handler is IHandler, Context {
         _;
     }
 
+    // Storage prefix for request receipts in pallet-ismp
+    bytes private constant REQUEST_STORAGE_PREFIX = hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
+
     /**
      * @dev Handle incoming consensus messages
      * @param host - Ismp host
@@ -25,20 +28,20 @@ abstract contract Handler is IHandler, Context {
      */
     function handleConsensus(IIsmpHost host, bytes memory proof) external notFrozen(host) {
         require(
-            (host.hostTimestamp() - host.consensusUpdateTime()) > host.challengePeriod(),
+            (host.timestamp() - host.consensusUpdateTime()) > host.challengePeriod(),
             "IHandler: still in challenge period"
         );
 
         // not today, time traveling validators
         require(
-            (host.hostTimestamp() - host.consensusUpdateTime()) < host.unStakingPeriod() || _msgSender() == host.admin(),
+            (host.timestamp() - host.consensusUpdateTime()) < host.unStakingPeriod() || _msgSender() == host.admin(),
             "IHandler: still in challenge period"
         );
 
         (bytes memory verifiedState, IntermediateState[] memory intermediates) =
             IConsensusClient(host.consensusClient()).verifyConsensus(host.consensusState(), proof);
         host.storeConsensusState(verifiedState);
-        host.storeConsensusUpdateTime(host.hostTimestamp());
+        host.storeConsensusUpdateTime(host.timestamp());
 
         uint256 commitmentsLen = intermediates.length;
         for (uint256 i = 0; i < commitmentsLen; i++) {
@@ -46,7 +49,7 @@ abstract contract Handler is IHandler, Context {
             StateMachineHeight memory stateMachineHeight =
                 StateMachineHeight({stateMachineId: intermediate.stateMachineId, height: intermediate.height});
             host.storeStateMachineCommitment(stateMachineHeight, intermediate.commitment);
-            host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.hostTimestamp());
+            host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.timestamp());
         }
     }
 
@@ -56,7 +59,7 @@ abstract contract Handler is IHandler, Context {
      * @param request - batch post requests
      */
     function handlePostRequests(IIsmpHost host, PostRequestMessage memory request) external notFrozen(host) {
-        uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(request.proof.height);
+        uint256 delay = host.timestamp() - host.stateMachineCommitmentUpdateTime(request.proof.height);
         require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         uint256 requestsLen = request.requests.length;
@@ -67,7 +70,7 @@ abstract contract Handler is IHandler, Context {
 
             require(!leaf.request.dest.equals(host.host()), "IHandler: Invalid request destination");
 
-            require(leaf.request.timeoutTimestamp < host.hostTimestamp(), "IHandler: Request timed out");
+            require(leaf.request.timeoutTimestamp < host.timestamp(), "IHandler: Request timed out");
 
             bytes32 commitment = Message.hash(leaf.request);
             require(!host.requestReceipts(commitment), "IHandler: Duplicate request");
@@ -96,7 +99,7 @@ abstract contract Handler is IHandler, Context {
      * @param response - batch post responses
      */
     function handlePostResponses(IIsmpHost host, PostResponseMessage memory response) external notFrozen(host) {
-        uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(response.proof.height);
+        uint256 delay = host.timestamp() - host.stateMachineCommitmentUpdateTime(response.proof.height);
         require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         uint256 responsesLength = response.responses.length;
@@ -136,7 +139,7 @@ abstract contract Handler is IHandler, Context {
      * @param message - batch get responses
      */
     function handleGetResponses(IIsmpHost host, GetResponseMessage memory message) external {
-        uint256 delay = host.hostTimestamp() - host.stateMachineCommitmentUpdateTime(message.height);
+        uint256 delay = host.timestamp() - host.stateMachineCommitmentUpdateTime(message.height);
         require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
         StateCommitment memory stateCommitment = host.stateMachineCommitment(message.height);
@@ -152,11 +155,12 @@ abstract contract Handler is IHandler, Context {
 
             bytes32 requestCommitment = Message.hash(request);
             require(host.requestCommitments(requestCommitment), "IHandler: Unknown GET request");
-            require(request.timeoutTimestamp < host.hostTimestamp(), "IHandler: GET request timed out");
+            require(request.timeoutTimestamp < host.timestamp(), "IHandler: GET request timed out");
 
-            StorageValue[] memory values = MerklePatricia.ReadChildProofCheck(root, proof, request.keys, bytes(requestCommitment));
+            StorageValue[] memory values =
+                MerklePatricia.ReadChildProofCheck(root, proof, request.keys, bytes.concat(requestCommitment));
             GetResponse memory response = GetResponse({request: request, values: values});
-            require(!host.responseCommitments(Message.Hash(response)), "IHandler: Duplicate GET response");
+            require(!host.responseCommitments(Message.hash(response)), "IHandler: Duplicate GET response");
             host.dispatchIncoming(response);
         }
     }
@@ -168,19 +172,17 @@ abstract contract Handler is IHandler, Context {
      */
     function handlePostTimeouts(IIsmpHost host, PostTimeoutMessage memory message) external {
         // fetch the state commitment
-        StateCommitment memory commitment = host.stateMachineCommitment(message.height);
+        StateCommitment memory state = host.stateMachineCommitment(message.height);
         uint256 timeoutsLength = message.timeouts.length;
 
         for (uint256 i = 0; i < timeoutsLength; i++) {
             PostRequest memory request = message.timeouts[i];
+            require(state.timestamp > request.timeoutTimestamp, "Request not timed out");
 
-            require(commitment.timestamp > request.timeoutTimestamp, "Request not timed out");
+            bytes[] memory keys = new bytes[](1);
+            keys[i] = bytes.concat(REQUEST_STORAGE_PREFIX, bytes.concat(Message.hash(request)));
 
-            // Todo: convert request commitment to storage key
-            bytes[] memory keys;
-
-            StorageValue memory entry =
-                MerklePatricia.VerifySubstrateProof(commitment.stateRoot, keys, message.proof)[0];
+            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
             require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
 
             host.dispatchIncoming(PostTimeout(request));
@@ -200,7 +202,7 @@ abstract contract Handler is IHandler, Context {
             bytes32 requestCommitment = Message.hash(request);
             require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
 
-            require(host.hostTimestamp() > request.timeoutTimestamp, "IHandler: GET request not timed out");
+            require(host.timestamp() > request.timeoutTimestamp, "IHandler: GET request not timed out");
             host.dispatchIncoming(request);
         }
     }

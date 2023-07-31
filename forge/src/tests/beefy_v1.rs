@@ -1,4 +1,4 @@
-use crate::{abi, execute, runner};
+use crate::{abi, abi::local, execute, runner};
 use beefy_primitives::{crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFinalityProof};
 use beefy_prover::Prover;
 use beefy_verifier_primitives::ConsensusState;
@@ -20,9 +20,9 @@ use subxt::{
     utils::{AccountId32, MultiAddress, MultiSignature},
     PolkadotConfig,
 };
-use crate::abi::local;
 
-type Hyperbridge = WithExtrinsicParams<HyperbridgeConfig, PolkadotExtrinsicParams<HyperbridgeConfig>>;
+type Hyperbridge =
+    WithExtrinsicParams<HyperbridgeConfig, PolkadotExtrinsicParams<HyperbridgeConfig>>;
 
 pub struct HyperbridgeConfig {}
 
@@ -37,21 +37,18 @@ impl Hasher for Keccak256 {
 }
 
 impl subxt::Config for HyperbridgeConfig {
-    type Index = u32;
-    type BlockNumber = u32;
     type Hash = H256;
     type AccountId = AccountId32;
     type Address = MultiAddress<Self::AccountId, u32>;
     type Signature = MultiSignature;
     type Hasher = Keccak256;
-    type Header = SubstrateHeader<Self::BlockNumber, Keccak256>;
+    type Header = SubstrateHeader<u32, Keccak256>;
     type ExtrinsicParams = SubstrateExtrinsicParams<Self>;
 }
 
 #[tokio::test]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
-
     let relay_ws_url = format!(
         "ws://{}:9944",
         std::env::var("RELAY_HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
@@ -73,7 +70,7 @@ async fn beefy_consensus_client_test() {
         .skip_while(|result| {
             futures::future::ready({
                 match result {
-                    Ok(block) => block.number() < 125,
+                    Ok(block) => block.number() < 10,
                     Err(_) => false,
                 }
             })
@@ -87,7 +84,6 @@ async fn beefy_consensus_client_test() {
     let para = subxt::client::OnlineClient::<Hyperbridge>::from_url(para_ws_url).await.unwrap();
     let prover = Prover { relay, para, para_ids: vec![2000] };
     let initial_state = prover.get_initial_consensus_state().await.unwrap();
-    dbg!(&initial_state);
     let mut consensus_state: abi::BeefyConsensusState = initial_state.into();
     let subscription: Subscription<String> = prover
         .relay
@@ -123,14 +119,21 @@ async fn beefy_consensus_client_test() {
         let consensus_proof: abi::BeefyConsensusProof =
             prover.consensus_proof(signed_commitment).await.unwrap().into();
 
-        let update =
-            execute::<_, (abi::BeefyConsensusState, Vec<abi::IntermediateState>)>(
-                &mut runner,
-                "BeefyConsensusClientTest",
-                "VerifyV1",
-                (consensus_state.clone().into_token(), consensus_proof.into_token()),
-            )
-            .unwrap();
+        if consensus_proof.relay.signed_commitment.commitment.block_number ==
+            consensus_state.latest_height
+        {
+            continue
+        }
+
+        dbg!(&consensus_proof.relay.signed_commitment.commitment);
+
+        let update = execute::<_, (abi::BeefyConsensusState, Vec<abi::IntermediateState>)>(
+            &mut runner,
+            "BeefyConsensusClientTest",
+            "VerifyV1",
+            (consensus_state.clone().into_token(), consensus_proof.into_token()),
+        )
+        .unwrap();
 
         consensus_state = update.0.clone();
 
@@ -141,7 +144,6 @@ async fn beefy_consensus_client_test() {
                 update.1.into_iter().map(Into::into).collect();
             dbg!(&intermediate);
         }
-
     }
 }
 
