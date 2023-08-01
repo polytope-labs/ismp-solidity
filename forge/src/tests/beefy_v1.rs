@@ -132,14 +132,12 @@ async fn beefy_consensus_client_test() {
         let (new_state, intermediates) = execute::<_, (bytes::Bytes, Vec<abi::IntermediateState>)>(
             &mut runner,
             "BeefyConsensusClientTest",
-            "VerifyV2",
+            "VerifyV1",
             (Token::Bytes(consensus_state.clone().encode()), Token::Bytes(consensus_proof.encode())),
         ).await
         .unwrap();
 
         consensus_state = abi::BeefyConsensusState::decode(new_state).unwrap();
-
-        // consensus_state = new_state.clone();
 
         {
             let debug_consensus_state: ConsensusState = consensus_state.clone().into();

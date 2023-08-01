@@ -15,14 +15,7 @@ contract BeefyConsensusClientTest is Test {
         beefy = new BeefyV1();
     }
 
-    function VerifyV1(BeefyConsensusState memory trustedConsensusState, BeefyConsensusProof memory proof)
-        public
-        returns (BeefyConsensusState memory, IntermediateState[] memory)
-    {
-        return beefy.verifyConsensus(trustedConsensusState, proof);
-    }
-
-    function VerifyV2(bytes memory trustedConsensusState, bytes memory proof)
+    function VerifyV1(bytes memory trustedConsensusState, bytes memory proof)
         public
         returns (bytes memory, IntermediateState[] memory)
     {

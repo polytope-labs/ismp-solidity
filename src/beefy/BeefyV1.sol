@@ -121,11 +121,13 @@ contract BeefyV1 is IConsensusClient {
         returns (bytes memory, IntermediateState[] memory)
     {
         BeefyConsensusState memory consensusState = abi.decode(encodedState, (BeefyConsensusState));
-        BeefyConsensusProof memory proof = abi.decode(encodedProof, (BeefyConsensusProof));
-//        (BeefyConsensusState memory newState, IntermediateState[] memory intermediates) =
-//            this.verifyConsensus(consensusState, proof);
-        IntermediateState[] memory intermediates = new IntermediateState[](0);
-        return (encodedState, intermediates);
+        (RelayChainProof memory relay, ParachainProof memory parachain) =
+            abi.decode(encodedProof, (RelayChainProof, ParachainProof));
+
+        (BeefyConsensusState memory newState, IntermediateState[] memory intermediates) =
+            this.verifyConsensus(consensusState, BeefyConsensusProof(relay, parachain));
+
+        return (abi.encode(newState), intermediates);
     }
 
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
