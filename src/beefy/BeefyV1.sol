@@ -116,12 +116,16 @@ contract BeefyV1 is IConsensusClient {
     /// ConsensusID for aura
     bytes4 public constant AURA_CONSENSUS_ID = bytes4("aura");
 
-    function verifyConsensus(bytes memory trustedState, bytes memory proof)
+    function verifyConsensus(bytes memory encodedState, bytes memory encodedProof)
         external
-        pure
         returns (bytes memory, IntermediateState[] memory)
     {
-        revert("unimplemented");
+        BeefyConsensusState memory consensusState = abi.decode(encodedState, (BeefyConsensusState));
+        BeefyConsensusProof memory proof = abi.decode(encodedProof, (BeefyConsensusProof));
+//        (BeefyConsensusState memory newState, IntermediateState[] memory intermediates) =
+//            this.verifyConsensus(consensusState, proof);
+        IntermediateState[] memory intermediates = new IntermediateState[](0);
+        return (encodedState, intermediates);
     }
 
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
@@ -275,15 +279,11 @@ contract BeefyV1 is IConsensusClient {
                 keccak256(bytes.concat(ScaleCodec.encode32(uint32(para.id)), ScaleCodec.encodeBytes(para.header)))
             );
 
-            intermediates[i] = IntermediateState(
-                para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot)
-            );
+            intermediates[i] =
+                IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
         }
 
-        require(
-            MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves),
-            "Invalid parachains heads proof"
-        );
+        require(MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves), "Invalid parachains heads proof");
 
         return intermediates;
     }
@@ -302,4 +302,3 @@ contract BeefyV1 is IConsensusClient {
         return len >= ((2 * total) / 3) + 1;
     }
 }
-

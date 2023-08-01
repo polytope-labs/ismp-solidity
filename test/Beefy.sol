@@ -22,6 +22,13 @@ contract BeefyConsensusClientTest is Test {
         return beefy.verifyConsensus(trustedConsensusState, proof);
     }
 
+    function VerifyV2(bytes memory trustedConsensusState, bytes memory proof)
+        public
+        returns (bytes memory, IntermediateState[] memory)
+    {
+        return beefy.verifyConsensus(trustedConsensusState, proof);
+    }
+
     function DecodeHeader(bytes memory encoded) public pure returns (Header memory) {
         return Codec.DecodeHeader(encoded);
     }

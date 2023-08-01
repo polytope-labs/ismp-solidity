@@ -27,6 +27,7 @@ static PROJECT: Lazy<Project> = Lazy::new(|| {
         // manually insert openzeppelin to remmapings. forge isn't autodetecting.
         root.push("lib/openzeppelin-contracts/contracts");
         paths.remappings.push(Remapping {
+            context: None,
             name: "openzeppelin/".to_string(),
             path: root.to_str().unwrap().to_string(),
         });
@@ -84,7 +85,7 @@ fn runner_with_config(mut config: Config) -> MultiContractRunner {
         .build(
             &PROJECT.paths.root,
             (*COMPILED).clone(),
-            EVM_OPTS.evm_env_blocking().unwrap(),
+            EVM_OPTS.local_evm_env(),
             EVM_OPTS.clone(),
         )
         .unwrap()
@@ -97,7 +98,7 @@ pub fn runner() -> MultiContractRunner {
     runner_with_config(config)
 }
 
-pub fn execute<T, R>(
+pub async fn execute<T, R>(
     runner: &mut MultiContractRunner,
     contract_name: &'static str,
     fn_name: &'static str,
@@ -107,17 +108,18 @@ where
     T: Tokenize,
     R: Detokenize + Debug,
 {
-    let db = Backend::spawn(runner.fork.take());
+    let db = Backend::spawn(runner.fork.take()).await;
 
     let names = runner.contracts.iter().map(|(id, _)| id.name.clone()).collect::<Vec<_>>();
 
     println!("names: {:?}", names);
 
-    let (_, (abi, deploy_code, libs)) = runner
+    let (id, (abi, deploy_code, libs)) = runner
         .contracts
         .iter()
         .find(|(id, (abi, _, _))| id.name == contract_name && abi.functions.contains_key(fn_name))
         .unwrap();
+    let identifier = id.identifier();
 
     let function = abi.functions.get(fn_name).unwrap().first().unwrap().clone();
 
@@ -131,6 +133,7 @@ where
         .build(db.clone());
 
     let mut single_runner = ContractRunner::new(
+        &identifier,
         executor,
         abi,
         deploy_code.clone(),
@@ -140,7 +143,7 @@ where
         libs,
     );
 
-    let setup = single_runner.setup(true).unwrap();
+    let setup = single_runner.setup(true);
     let TestSetup { address, .. } = setup;
 
     let result = single_runner.executor.execute_test::<R, _, _>(

@@ -51,6 +51,5 @@ interface IConsensusClient {
     /// by this consensus proof.
     function verifyConsensus(bytes memory trustedState, bytes memory proof)
         external
-        pure
         returns (bytes memory, IntermediateState[] memory);
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "./interfaces/IIsmpDispatcher.sol";
 import "./interfaces/IIsmpModule.sol";
 
-library SubstrateHost {
+library SubstrateDispatcher {
     // addresses of the precompiles
     address public constant POST_REQUEST_DISPATCHER = 0x222A98a2832ae77E72a768bF5be1F82D8959f4Ec;
     address public constant POST_RESPONSE_DISPATCHER = 0xEB928e2de75Cb5ab60aBE75f539C5312aeb46f38;

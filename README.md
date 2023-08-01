@@ -5,13 +5,17 @@
 ## Interface
 
  - [`IConsensusClient`](./src/interfaces/IConsensusClient.sol)
+   - [`BeefyV1`](./src/beefy/BeefyV1.sol)
  - [`IHandler`](./src/interfaces/IHandler.sol)
+   - [`HandlerV1`](./src/HandlerV1.sol)
  - [`IIsmpDispatcher`](./src/interfaces/IIsmpDispatcher.sol)
+     - [`SubstrateDispatcher`](src/SubstrateDispatcher.sol)
  - [`IIsmpHost`](./src/interfaces/IIsmpHost.sol)
+   - [`EvmHost`](./src/EvmHost.sol)
  - [`IIsmpModule`](./src/interfaces/IIsmpModule.sol)
+   - [`CrossChainGovernor`](./src/modules/CrossChainGovernor.sol)
 
-
-## `SubstrateHost`
+## `SubstrateDispatcher`
 
 This provides the interface that EVM contracts living on substrate chains can use to dispatch requests & responses over ISMP. This requires the `pallet-ismp` present in the runtime and the necessary precompiles from the `ismp-evm` module configured.
 

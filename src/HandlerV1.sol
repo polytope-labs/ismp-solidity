@@ -10,7 +10,7 @@ import "./interfaces/IHandler.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IIsmpDispatcher.sol";
 
-abstract contract Handler is IHandler, Context {
+abstract contract HandlerV1 is IHandler, Context {
     using Bytes for bytes;
 
     modifier notFrozen(IIsmpHost host) {
@@ -19,7 +19,8 @@ abstract contract Handler is IHandler, Context {
     }
 
     // Storage prefix for request receipts in pallet-ismp
-    bytes private constant REQUEST_STORAGE_PREFIX = hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
+    bytes private constant REQUEST_STORAGE_PREFIX =
+        hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
 
     /**
      * @dev Handle incoming consensus messages
