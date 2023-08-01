@@ -32,20 +32,6 @@ struct IntermediateState {
     StateCommitment commitment;
 }
 
-// Consensus client contract address and related metadata
-struct Consensus {
-    // consensus client contract
-    address client;
-    // current verified state of the consensus client;
-    bytes state;
-    // timestamp for when the consensus was most recently updated
-    uint256 lastUpdated;
-    // unstaking period
-    uint256 unStakingPeriod;
-    // minimum challenge period in seconds;
-    uint256 challengePeriod;
-}
-
 interface IConsensusClient {
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.

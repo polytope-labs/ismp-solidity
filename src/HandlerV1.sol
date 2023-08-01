@@ -10,7 +10,7 @@ import "./interfaces/IHandler.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IIsmpDispatcher.sol";
 
-abstract contract HandlerV1 is IHandler, Context {
+contract HandlerV1 is IHandler, Context {
     using Bytes for bytes;
 
     modifier notFrozen(IIsmpHost host) {

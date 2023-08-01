@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import {StateCommitment, StateMachineHeight, Consensus} from "./IConsensusClient.sol";
+import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmpDispatcher.sol";
 
 struct BridgeParams {
@@ -22,7 +22,7 @@ interface IIsmpHost is IIsmpDispatcher {
     /**
      * @return the host state machine id
      */
-    function host() external returns (bytes memory);
+    function host() external virtual returns (bytes memory);
 
     /**
      * @return the host timestamp

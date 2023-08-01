@@ -13,12 +13,22 @@ import "./interfaces/IHandler.sol";
 struct HostParams {
     // default timeout in seconds for requests.
     uint256 defaultTimeout;
+    // timestamp for when the consensus was most recently updated
+    uint256 lastUpdated;
+    // unstaking period
+    uint256 unStakingPeriod;
+    // minimum challenge period in seconds;
+    uint256 challengePeriod;
+    // consensus client contract
+    address client;
     // admin account, this only has the rights to freeze, or unfreeze the bridge
     address admin;
     // Ismp request/response handler
     address handler;
     // the authorized cross-chain governor contract
     address crosschainGovernor;
+    // current verified state of the consensus client;
+    bytes consensusState;
 }
 
 /// Ismp implementation for Evm hosts
@@ -43,9 +53,6 @@ abstract contract EvmHost is IIsmpHost, Context {
 
     // Parameters for the host
     HostParams private _hostParams;
-
-    // consensus client address and metadata,
-    Consensus private _consensus;
 
     // monotonically increasing nonce for outgoing requests
     uint256 private _nonce;
@@ -86,8 +93,7 @@ abstract contract EvmHost is IIsmpHost, Context {
         _;
     }
 
-    constructor(HostParams memory params, Consensus memory initial) {
-        _consensus = initial;
+    constructor(HostParams memory params) {
         _hostParams = params;
     }
 
@@ -138,21 +144,21 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @return the consensus client contract
      */
     function consensusClient() external returns (address) {
-        return _consensus.client;
+        return _hostParams.client;
     }
 
     /**
      * @return the last updated time of the consensus client
      */
     function consensusUpdateTime() external returns (uint256) {
-        return _consensus.lastUpdated;
+        return _hostParams.lastUpdated;
     }
 
     /**
      * @return the state of the consensus client
      */
     function consensusState() external returns (bytes memory) {
-        return _consensus.state;
+        return _hostParams.consensusState;
     }
 
     /**
@@ -191,7 +197,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @return the challenge period
      */
     function challengePeriod() external returns (uint256) {
-        return _consensus.challengePeriod;
+        return _hostParams.challengePeriod;
     }
 
     /**
@@ -199,9 +205,9 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param params new bridge params
      */
     function setBridgeParams(BridgeParams memory params) external onlyGovernance {
-        _consensus.challengePeriod = params.challengePeriod;
-        _consensus.client = params.consensus;
-        _consensus.unStakingPeriod = params.unstakingPeriod;
+        _hostParams.challengePeriod = params.challengePeriod;
+        _hostParams.client = params.consensus;
+        _hostParams.unStakingPeriod = params.unstakingPeriod;
 
         _hostParams.admin = params.admin;
         _hostParams.defaultTimeout = params.defaultTimeout;
@@ -212,14 +218,14 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @dev Store an encoded consensus state
      */
     function storeConsensusState(bytes memory state) external onlyHandler {
-        _consensus.state = state;
+        _hostParams.consensusState = state;
     }
 
     /**
      * @dev Store the timestamp when the consensus client was updated
      */
     function storeConsensusUpdateTime(uint256 time) external onlyHandler {
-        _consensus.lastUpdated = time;
+        _hostParams.lastUpdated = time;
     }
 
     /**
@@ -254,7 +260,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @return the unstaking period
      */
     function unStakingPeriod() public returns (uint256) {
-        return _consensus.unStakingPeriod;
+        return _hostParams.unStakingPeriod;
     }
 
     /**
