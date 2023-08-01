@@ -269,7 +269,8 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostRequest memory request) external onlyHandler {
         address destination = _bytesToAddress(request.to);
-        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
+//        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
+
         IIsmpModule(destination).onAccept(request);
 
         bytes32 commitment = Message.hash(request);
@@ -282,7 +283,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
+//        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onPostResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -295,7 +296,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
+//        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onGetResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -308,7 +309,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetRequest memory request) external onlyHandler {
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
+//        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onGetTimeout(request);
 
         // Delete Commitment
@@ -323,7 +324,7 @@ abstract contract EvmHost is IIsmpHost, Context {
     function dispatchIncoming(PostTimeout memory timeout) external onlyHandler {
         PostRequest memory request = timeout.request;
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module");
+//        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onPostTimeout(request);
 
         // Delete Commitment
@@ -336,7 +337,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param request - post dispatch request
      */
     function dispatch(DispatchPost memory request) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
+//        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         PostRequest memory _request = PostRequest(
             host(),
@@ -360,7 +361,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.nonce,
             _request.timeoutTimestamp,
             _request.body
-            );
+        );
     }
 
     /**
@@ -393,7 +394,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: invalid module");
+//        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: invalid module"); doesn't work
         bytes32 receipt = Message.hash(response.request);
         require(_requestReceipts[receipt], "EvmHost: unknown request");
 

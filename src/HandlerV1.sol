@@ -69,8 +69,7 @@ contract HandlerV1 is IHandler, Context {
         for (uint256 i = 0; i < requestsLen; i++) {
             PostRequestLeaf memory leaf = request.requests[i];
 
-            require(!leaf.request.dest.equals(host.host()), "IHandler: Invalid request destination");
-
+            require(leaf.request.dest.equals(host.host()), "IHandler: Invalid request destination");
             require(leaf.request.timeoutTimestamp < host.timestamp(), "IHandler: Request timed out");
 
             bytes32 commitment = Message.hash(leaf.request);

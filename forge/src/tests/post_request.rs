@@ -1,8 +1,4 @@
-use crate::{
-    abi,
-    forge::{execute_single, single_runner},
-    runner,
-};
+use crate::{abi, forge::{execute_single, single_runner}, keccak256, runner};
 use ethers::{
     abi::{AbiEncode, Token},
     core::types::U256,
@@ -13,10 +9,21 @@ use ismp::{
     host::{Ethereum, StateMachine},
     router::{Post, Request},
 };
-use ismp_primitives::mmr::{DataOrHash, MmrHasher};
-use merkle_mountain_range::util::MemMMR;
+use ismp::util::Keccak256;
+use ismp_primitives::mmr::{DataOrHash, Leaf, MmrHasher};
+use merkle_mountain_range_labs::mmr_position_to_k_index;
+use merkle_mountain_range::util::{MemMMR, MemStore};
+use primitive_types::H256;
 
-type Mmr = MemMMR<DataOrHash<()>, MmrHasher<(), ()>>;
+pub struct Hasher;
+
+impl Keccak256 for Hasher {
+    fn keccak256(bytes: &[u8]) -> H256 where Self: Sized {
+        keccak256(bytes).into()
+    }
+}
+
+type Mmr = MemMMR<DataOrHash, MmrHasher<Hasher>>;
 
 #[tokio::test]
 async fn test_post_request_proof() {
@@ -32,13 +39,29 @@ async fn test_post_request_proof() {
         nonce: 0,
         from: address.as_bytes().to_vec(),
         to: destination.as_bytes().to_vec(),
-        timeout_timestamp: 50_000,
+        timeout_timestamp: 50,
         data: vec![],
         gas_limit: 0,
     };
-    let request = Request::Post(post.clone());
+    let request = DataOrHash::Data(Leaf::Request(Request::Post(post.clone())));
 
     // create the mmr tree and insert it
+    let store = MemStore::default();
+    let mut mmr = Mmr::new(0, store);
+
+    for _ in 0..30 {
+        let hash = H256::random();
+        mmr.push(DataOrHash::Hash(hash)).unwrap();
+    }
+
+    let pos = mmr.push(request.clone()).unwrap();
+    dbg!(pos);
+    let k_index = mmr_position_to_k_index(vec![pos], mmr.mmr_size())[0].1;
+    dbg!(k_index);
+
+    let proof = mmr.gen_proof(vec![pos]).unwrap();
+    let overlay_root = unwrap_hash(&mmr.get_root().unwrap());
+    let multiproof = proof.proof_items().iter().map(unwrap_hash).collect();
 
     // create intermediate state
     let height = abi::StateMachineHeight {
@@ -50,7 +73,7 @@ async fn test_post_request_proof() {
         height: height.height,
         commitment: abi::StateCommitment {
             timestamp: U256::from(20000),
-            overlay_root: [0u8; 32],
+            overlay_root,
             state_root: [0u8; 32],
         },
     }
@@ -59,8 +82,8 @@ async fn test_post_request_proof() {
     let message = abi::PostRequestMessage {
         proof: abi::Proof {
             height,
-            multiproof: vec![],
-            mmr_size: Default::default(),
+            multiproof,
+            mmr_size: proof.mmr_size().into(),
         },
         requests: vec![abi::PostRequestLeaf {
             request: abi::PostRequest {
@@ -73,8 +96,8 @@ async fn test_post_request_proof() {
                 body: post.data.into(),
                 gaslimit: post.gas_limit,
             },
-            mmr_index: Default::default(),
-            k_index: Default::default(),
+            mmr_index: pos.into(),
+            k_index: k_index.into(),
         }],
     };
 
@@ -86,4 +109,11 @@ async fn test_post_request_proof() {
         (Token::Bytes(consensus_proof), message.into_token()),
     )
     .unwrap();
+}
+
+fn unwrap_hash(item: &DataOrHash) -> [u8; 32] {
+    match item {
+        DataOrHash::Hash(h) => (*h).into(),
+        _ => panic!("not a hash"),
+    }
 }

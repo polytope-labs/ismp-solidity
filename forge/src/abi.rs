@@ -1,6 +1,7 @@
 use beefy_primitives::mmr::BeefyNextAuthoritySet;
 use beefy_verifier_primitives::{ConsensusMessage, ConsensusState, MmrProof};
-use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos, mmr_position_to_k_index};
+use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos};
+use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
 
 ethers::contract::abigen!(BeefyV1, "../out/abi/BeefyV1.abi",);
