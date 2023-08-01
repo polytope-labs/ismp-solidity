@@ -7,6 +7,7 @@ import "../src/beefy/BeefyV1.sol";
 import "./TestConsensusClient.sol";
 import "../src/EvmHost.sol";
 import "./TestHost.sol";
+import { MockModule } from "./MockModule.sol";
 import "../src/HandlerV1.sol";
 
 contract PostRequestTest is Test {
@@ -15,22 +16,37 @@ contract PostRequestTest is Test {
 
     IConsensusClient internal consensusClient;
     EvmHost internal host;
+    HandlerV1 internal handler;
+    address internal testModule;
 
     function setUp() public virtual {
         consensusClient = new TestConsensusClient();
-        HandlerV1 handler = new HandlerV1();
+        handler = new HandlerV1();
+
         HostParams memory params = HostParams({
             admin: address(0),
             crosschainGovernor: address(0),
-            handler: handler,
+            handler: address(handler),
             defaultTimeout: 5000,
             unStakingPeriod: 5000,
             // for this test
             challengePeriod: 0,
-            client: consensusClient,
+            consensusClient: address(consensusClient),
             lastUpdated: 0,
-            consensusState: bytes(0)
+            consensusState: new bytes(0)
         });
         host = new TestHost(params);
+
+        MockModule test = new MockModule(address(host));
+        testModule = address(test);
+    }
+
+    function module() public view returns (address) {
+        return testModule;
+    }
+
+    function PostRequestNoChallengeNoTimeout(bytes memory consensusProof, PostRequestMessage memory message) public {
+        handler.handleConsensus(host, consensusProof);
+        handler.handlePostRequests(host, message);
     }
 }

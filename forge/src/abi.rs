@@ -4,6 +4,7 @@ use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos, mmr_posit
 use primitive_types::H256;
 
 ethers::contract::abigen!(BeefyV1, "../out/abi/BeefyV1.abi",);
+ethers::contract::abigen!(HandlerV1, "../out/handler/HandlerV1.abi",);
 
 impl From<ConsensusMessage> for BeefyConsensusProof {
     fn from(message: ConsensusMessage) -> Self {

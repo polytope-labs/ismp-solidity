@@ -3,7 +3,7 @@ use beefy_primitives::{crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFin
 use beefy_prover::Prover;
 use beefy_verifier_primitives::ConsensusState;
 use codec::{Decode, Encode};
-use ethers::abi::{Token, Uint};
+use ethers::abi::{AbiDecode, AbiEncode, Token, Uint};
 use futures::stream::StreamExt;
 use hex_literal::hex;
 use primitive_types::H256;
@@ -20,8 +20,6 @@ use subxt::{
     utils::{AccountId32, MultiAddress, MultiSignature},
     PolkadotConfig,
 };
-use ethers::abi::{AbiDecode, AbiEncode};
-
 
 type Hyperbridge =
     WithExtrinsicParams<HyperbridgeConfig, PolkadotExtrinsicParams<HyperbridgeConfig>>;
@@ -133,8 +131,12 @@ async fn beefy_consensus_client_test() {
             &mut runner,
             "BeefyConsensusClientTest",
             "VerifyV1",
-            (Token::Bytes(consensus_state.clone().encode()), Token::Bytes(consensus_proof.encode())),
-        ).await
+            (
+                Token::Bytes(consensus_state.clone().encode()),
+                Token::Bytes(consensus_proof.encode()),
+            ),
+        )
+        .await
         .unwrap();
 
         consensus_state = abi::BeefyConsensusState::decode(new_state).unwrap();
@@ -169,7 +171,8 @@ async fn test_decode_encode() {
                 "BeefyConsensusClientTest",
                 "DecodeHeader",
                 (Token::Bytes(header.encode())),
-            ).await
+            )
+            .await
             .unwrap();
 
         assert_eq!(&parent_hash, header.parent_hash.as_fixed_bytes());
@@ -193,7 +196,8 @@ async fn test_decode_encode() {
             "BeefyConsensusClientTest",
             "EncodeCommitment",
             (abi,),
-        ).await
+        )
+        .await
         .unwrap();
 
         assert_eq!(encoded, commitment.encode());
@@ -214,7 +218,8 @@ async fn test_decode_encode() {
         ]);
 
         let encoded =
-            execute::<_, Vec<u8>>(&mut runner, "BeefyConsensusClientTest", "EncodeLeaf", (abi,)).await
+            execute::<_, Vec<u8>>(&mut runner, "BeefyConsensusClientTest", "EncodeLeaf", (abi,))
+                .await
                 .unwrap();
 
         assert_eq!(encoded, mmr_leaf.encode());

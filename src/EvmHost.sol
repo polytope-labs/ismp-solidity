@@ -20,7 +20,7 @@ struct HostParams {
     // minimum challenge period in seconds;
     uint256 challengePeriod;
     // consensus client contract
-    address client;
+    address consensusClient;
     // admin account, this only has the rights to freeze, or unfreeze the bridge
     address admin;
     // Ismp request/response handler
@@ -100,7 +100,7 @@ abstract contract EvmHost is IIsmpHost, Context {
     /**
      * @return the host admin
      */
-    function admin() external returns (address) {
+    function admin() external view returns (address) {
         return _hostParams.admin;
     }
 
@@ -127,7 +127,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param height - state machine height
      * @return the state commitment at `height`
      */
-    function stateMachineCommitment(StateMachineHeight memory height) external returns (StateCommitment memory) {
+    function stateMachineCommitment(StateMachineHeight memory height) external view returns (StateCommitment memory) {
         return _stateCommitments[height.stateMachineId][height.height];
     }
 
@@ -135,7 +135,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param height - state machine height
      * @return the state machine update time at `height`
      */
-    function stateMachineUpdateTime(StateMachineHeight memory height) external returns (uint256) {
+    function stateMachineCommitmentUpdateTime(StateMachineHeight memory height) external view returns (uint256) {
         return _stateCommitmentsUpdateTime[height.stateMachineId][height.height];
     }
 
@@ -143,21 +143,21 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @dev Should return a handle to the consensus client based on the id
      * @return the consensus client contract
      */
-    function consensusClient() external returns (address) {
-        return _hostParams.client;
+    function consensusClient() external view returns (address) {
+        return _hostParams.consensusClient;
     }
 
     /**
      * @return the last updated time of the consensus client
      */
-    function consensusUpdateTime() external returns (uint256) {
+    function consensusUpdateTime() external view returns (uint256) {
         return _hostParams.lastUpdated;
     }
 
     /**
      * @return the state of the consensus client
      */
-    function consensusState() external returns (bytes memory) {
+    function consensusState() external view returns (bytes memory) {
         return _hostParams.consensusState;
     }
 
@@ -165,7 +165,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param commitment - commitment to the request
      * @return existence status of an incoming request commitment
      */
-    function requestReceipts(bytes32 commitment) external returns (bool) {
+    function requestReceipts(bytes32 commitment) external view returns (bool) {
         return _requestReceipts[commitment];
     }
 
@@ -173,7 +173,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param commitment - commitment to the response
      * @return existence status of an incoming response commitment
      */
-    function responseReceipts(bytes32 commitment) external returns (bool) {
+    function responseReceipts(bytes32 commitment) external view returns (bool) {
         return _responseReceipts[commitment];
     }
 
@@ -181,7 +181,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (bool) {
+    function requestCommitments(bytes32 commitment) external view returns (bool) {
         return _requestCommitments[commitment];
     }
 
@@ -189,14 +189,14 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param commitment - commitment to the response
      * @return existence status of an outgoing response commitment
      */
-    function responseCommitments(bytes32 commitment) external returns (bool) {
+    function responseCommitments(bytes32 commitment) external view returns (bool) {
         return _responseCommitments[commitment];
     }
 
     /**
      * @return the challenge period
      */
-    function challengePeriod() external returns (uint256) {
+    function challengePeriod() external view returns (uint256) {
         return _hostParams.challengePeriod;
     }
 
@@ -206,7 +206,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function setBridgeParams(BridgeParams memory params) external onlyGovernance {
         _hostParams.challengePeriod = params.challengePeriod;
-        _hostParams.client = params.consensus;
+        _hostParams.consensusClient = params.consensus;
         _hostParams.unStakingPeriod = params.unstakingPeriod;
 
         _hostParams.admin = params.admin;
@@ -259,7 +259,7 @@ abstract contract EvmHost is IIsmpHost, Context {
     /**
      * @return the unstaking period
      */
-    function unStakingPeriod() public returns (uint256) {
+    function unStakingPeriod() public view returns (uint256) {
         return _hostParams.unStakingPeriod;
     }
 

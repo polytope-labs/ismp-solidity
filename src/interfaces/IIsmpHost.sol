@@ -22,7 +22,7 @@ interface IIsmpHost is IIsmpDispatcher {
     /**
      * @return the host state machine id
      */
-    function host() external virtual returns (bytes memory);
+    function host() external returns (bytes memory);
 
     /**
      * @return the host timestamp
