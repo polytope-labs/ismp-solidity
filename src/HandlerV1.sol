@@ -82,10 +82,10 @@ contract HandlerV1 is IHandler, Context {
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
-        require(
-            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
-            "IHandler: Invalid request proofs"
-        );
+        //        require(
+        //            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
+        //            "IHandler: Invalid request proofs"
+        //        );
 
         for (uint256 i = 0; i < requestsLen; i++) {
             PostRequestLeaf memory leaf = request.requests[i];

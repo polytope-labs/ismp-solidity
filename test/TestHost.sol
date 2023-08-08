@@ -6,7 +6,7 @@ import "../src/interfaces/StateMachine.sol";
 
 contract TestHost is EvmHost {
     constructor(HostParams memory params) EvmHost(params) {}
-    
+
     function host() public override returns (bytes memory) {
         return StateMachine.ethereum();
     }

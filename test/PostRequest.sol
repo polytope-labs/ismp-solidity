@@ -7,7 +7,7 @@ import "../src/beefy/BeefyV1.sol";
 import "./TestConsensusClient.sol";
 import "../src/EvmHost.sol";
 import "./TestHost.sol";
-import { MockModule } from "./MockModule.sol";
+import {MockModule} from "./MockModule.sol";
 import "../src/HandlerV1.sol";
 
 interface Hevm {

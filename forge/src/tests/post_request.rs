@@ -1,24 +1,30 @@
-use crate::{abi, forge::{execute_single, single_runner}, keccak256, runner};
+use crate::{
+    abi,
+    forge::{execute_single, single_runner},
+    keccak256, runner,
+};
 use ethers::{
-    abi::{AbiEncode, Token},
+    abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
 };
-use ethers::abi::Tokenizable;
 use foundry_evm::Address;
 use ismp::{
     host::{Ethereum, StateMachine},
     router::{Post, Request},
+    util::Keccak256,
 };
-use ismp::util::Keccak256;
 use ismp_primitives::mmr::{DataOrHash, Leaf, MmrHasher};
-use merkle_mountain_range_labs::mmr_position_to_k_index;
 use merkle_mountain_range::util::{MemMMR, MemStore};
+use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
 
 pub struct Hasher;
 
 impl Keccak256 for Hasher {
-    fn keccak256(bytes: &[u8]) -> H256 where Self: Sized {
+    fn keccak256(bytes: &[u8]) -> H256
+    where
+        Self: Sized,
+    {
         keccak256(bytes).into()
     }
 }
@@ -55,19 +61,15 @@ async fn test_post_request_proof() {
     }
 
     let pos = mmr.push(request.clone()).unwrap();
-    dbg!(pos);
     let k_index = mmr_position_to_k_index(vec![pos], mmr.mmr_size())[0].1;
-    dbg!(k_index);
 
     let proof = mmr.gen_proof(vec![pos]).unwrap();
     let overlay_root = unwrap_hash(&mmr.get_root().unwrap());
     let multiproof = proof.proof_items().iter().map(unwrap_hash).collect();
 
     // create intermediate state
-    let height = abi::StateMachineHeight {
-        state_machine_id: U256::from(2000),
-        height: U256::from(1),
-    };
+    let height =
+        abi::StateMachineHeight { state_machine_id: U256::from(2000), height: U256::from(1) };
     let consensus_proof = abi::IntermediateState {
         state_machine_id: height.state_machine_id,
         height: height.height,
@@ -80,11 +82,7 @@ async fn test_post_request_proof() {
     .encode();
 
     let message = abi::PostRequestMessage {
-        proof: abi::Proof {
-            height,
-            multiproof,
-            mmr_size: proof.mmr_size().into(),
-        },
+        proof: abi::Proof { height, multiproof, mmr_size: proof.mmr_size().into() },
         requests: vec![abi::PostRequestLeaf {
             request: abi::PostRequest {
                 source: post.source.to_string().as_bytes().to_vec().into(),

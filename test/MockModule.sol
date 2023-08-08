@@ -11,6 +11,7 @@ contract MockModule is IIsmpModule {
     event PostTimeoutReceived();
     event GetTimeoutReceived();
     event PostReceived();
+
     error NotIsmpHost();
     error ExecutionFailed();
 
@@ -30,7 +31,6 @@ contract MockModule is IIsmpModule {
 
     function onAccept(PostRequest memory request) public onlyIsmpHost {
         emit PostReceived();
-
     }
 
     function onPostResponse(PostResponse memory response) public onlyIsmpHost {
