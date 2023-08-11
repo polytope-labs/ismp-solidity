@@ -11,3 +11,8 @@ contract TestHost is EvmHost {
         return StateMachine.ethereum();
     }
 }
+
+interface Hevm {
+    // Set block.timestamp (newTimestamp)
+    function warp(uint256) external;
+}

@@ -29,6 +29,19 @@ contract MockModule is IIsmpModule {
         _host = host;
     }
 
+    function dispatchPost(PostRequest memory request) public returns (bytes32) {
+        bytes32 commitment = Message.hash(request);
+        DispatchPost memory dispatchPost = DispatchPost({
+            body: request.body,
+            dest: request.dest,
+            timeout: request.timeoutTimestamp,
+            to: request.to,
+            gaslimit: request.gaslimit
+        });
+        IIsmpDispatcher(_host).dispatch(dispatchPost);
+        return commitment;
+    }
+
     function onAccept(PostRequest memory request) public onlyIsmpHost {
         emit PostReceived();
     }

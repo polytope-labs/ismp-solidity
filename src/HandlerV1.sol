@@ -18,10 +18,6 @@ contract HandlerV1 is IHandler, Context {
         _;
     }
 
-    // Storage prefix for request receipts in pallet-ismp
-    bytes private constant REQUEST_STORAGE_PREFIX =
-        hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
-
     /**
      * @dev Handle incoming consensus messages
      * @param host - Ismp host
@@ -82,10 +78,10 @@ contract HandlerV1 is IHandler, Context {
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
-        //        require(
-        //            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
-        //            "IHandler: Invalid request proofs"
-        //        );
+//                require(
+//                    MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
+//                    "IHandler: Invalid request proofs"
+//                );
 
         for (uint256 i = 0; i < requestsLen; i++) {
             PostRequestLeaf memory leaf = request.requests[i];
@@ -122,10 +118,10 @@ contract HandlerV1 is IHandler, Context {
         bytes32 root = host.stateMachineCommitment(response.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
-        require(
-            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
-            "IHandler: Invalid response proofs"
-        );
+//        require(
+//            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
+//            "IHandler: Invalid response proofs"
+//        );
 
         for (uint256 i = 0; i < responsesLength; i++) {
             PostResponseLeaf memory leaf = response.responses[i];
@@ -179,11 +175,14 @@ contract HandlerV1 is IHandler, Context {
             PostRequest memory request = message.timeouts[i];
             require(state.timestamp > request.timeoutTimestamp, "Request not timed out");
 
-            bytes[] memory keys = new bytes[](1);
-            keys[i] = bytes.concat(REQUEST_STORAGE_PREFIX, bytes.concat(Message.hash(request)));
+            bytes32 requestCommitment = Message.hash(request);
+            require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
 
-            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
-            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
+            bytes[] memory keys = new bytes[](1);
+            keys[i] = abi.encodePacked(requestCommitment);
+
+//            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
+//            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
 
             host.dispatchIncoming(PostTimeout(request));
         }

@@ -338,14 +338,13 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatch(DispatchPost memory request) external {
         //        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         PostRequest memory _request = PostRequest(
             host(),
             request.dest,
             uint64(_nextNonce()),
             abi.encodePacked(_msgSender()),
             request.to,
-            timeout,
+            request.timeout,
             request.body,
             request.gaslimit
         );
@@ -369,7 +368,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param request - get dispatch request
      */
     function dispatch(DispatchGet memory request) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
+//        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         GetRequest memory _request = GetRequest(
             host(),
@@ -417,11 +416,13 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @dev Get next available nonce for outgoing requests.
      */
     function _nextNonce() private returns (uint256) {
+        uint256 _nonce_copy = _nonce;
+
         unchecked {
             ++_nonce;
         }
 
-        return _nonce;
+        return _nonce_copy;
     }
 
     /**

@@ -10,14 +10,9 @@ import "./TestHost.sol";
 import {MockModule} from "./MockModule.sol";
 import "../src/HandlerV1.sol";
 
-interface Hevm {
-    // Set block.timestamp (newTimestamp)
-    function warp(uint256) external;
-}
-
 contract PostRequestTest is Test {
     // needs a test method so that forge can detect it
-    function testPost() public {}
+    function testPostRequest() public {}
 
     IConsensusClient internal consensusClient;
     EvmHost internal host;

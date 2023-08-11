@@ -46,15 +46,7 @@ contract PostResponseTest is Test {
     }
 
     function PostResponseNoChallengeNoTimeout(bytes memory consensusProof, PostRequest memory request, PostResponseMessage memory message) public {
-        // Post has to be dispatched before a response can be processed
-        DispatchPost memory dispatchPost = DispatchPost({
-            body: request.body,
-            dest: request.dest,
-            timeout: request.timeoutTimestamp,
-            to: request.to,
-            gaslimit: request.gaslimit
-        });
-        host.dispatch(dispatchPost);
+        MockModule(testModule).dispatchPost(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);
         handler.handlePostResponses(host, message);
