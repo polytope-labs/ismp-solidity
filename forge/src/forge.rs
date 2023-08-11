@@ -21,10 +21,12 @@ use std::{
     fmt::Debug,
     path::{Path, PathBuf},
 };
+use ethers::types::Log;
+use foundry_evm::decode::decode_console_logs;
 
 static PROJECT: Lazy<Project> = Lazy::new(|| {
     let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    root = PathBuf::from(root.parent().unwrap().clone());
+    root = PathBuf::from(root.parent().unwrap());
     let mut paths = ProjectPathsConfig::builder().root(root.clone()).build().unwrap();
     {
         // manually insert openzeppelin to remmapings. forge isn't autodetecting.
@@ -47,6 +49,7 @@ static EVM_OPTS: Lazy<EvmOpts> = Lazy::new(|| EvmOpts {
         block_timestamp: 1,
         ..Default::default()
     },
+    verbosity: 2,
     sender: Config::DEFAULT_SENDER,
     initial_balance: U256::MAX,
     ffi: true,
@@ -217,10 +220,24 @@ where
         args,
         0.into(),
         contract.errors,
-    )?;
+    );
 
-    println!("Gas used {func}: {:#?}", result.gas_used);
-    println!("Logs {func}: {:#?}", result.logs);
+    match &result {
+        Ok(call) => print_logs(func, call.gas_used, &call.logs),
+        Err(EvmError::Execution(execution)) => print_logs(func, execution.gas_used, &execution.logs),
+        _ => {},
+    };
 
-    Ok(result.result)
+
+
+    Ok(result?.result)
+}
+
+fn print_logs(func: &str, gas_used: u64, logs: &Vec<Log>) {
+    println!("Gas used {func}: {:#?}", gas_used);
+    println!("=========== Start Logs {func} ===========");
+    for log in decode_console_logs(logs) {
+        println!("{}", log);
+    }
+    println!("=========== End Logs {func} ===========");
 }

@@ -368,7 +368,7 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param request - get dispatch request
      */
     function dispatch(DispatchGet memory request) external {
-//        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
+        //        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
         GetRequest memory _request = GetRequest(
             host(),

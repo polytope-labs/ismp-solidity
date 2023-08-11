@@ -1,8 +1,4 @@
-use crate::{
-    abi,
-    forge::{execute_single, single_runner},
-    runner, unwrap_hash, Mmr,
-};
+use crate::{abi, forge::{execute_single, single_runner}, runner, unwrap_hash, Mmr};
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
@@ -39,12 +35,18 @@ async fn test_post_request_proof() {
     // create the mmr tree and insert it
     let mut mmr = Mmr::default();
 
-    for _ in 0..12 {
+    for _ in 0..30 {
         let hash = H256::random();
         mmr.push(DataOrHash::Hash(hash)).unwrap();
     }
 
     let pos = mmr.push(request.clone()).unwrap();
+
+    for _ in 0..30 {
+        let hash = H256::random();
+        mmr.push(DataOrHash::Hash(hash)).unwrap();
+    }
+
     let k_index = mmr_position_to_k_index(vec![pos], mmr.mmr_size())[0].1;
 
     let proof = mmr.gen_proof(vec![pos]).unwrap();

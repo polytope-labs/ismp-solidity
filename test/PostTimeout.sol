@@ -29,7 +29,7 @@ contract PostTimeoutTest is Test {
             handler: address(handler),
             defaultTimeout: 5000,
             unStakingPeriod: 5000,
-        // for this test
+            // for this test
             challengePeriod: 0,
             consensusClient: address(consensusClient),
             lastUpdated: 0,
@@ -45,11 +45,14 @@ contract PostTimeoutTest is Test {
         return testModule;
     }
 
-    function PostTimeoutNoChallenge(bytes memory consensusProof, PostRequest memory request, PostTimeoutMessage memory message) public {
+    function PostTimeoutNoChallenge(
+        bytes memory consensusProof,
+        PostRequest memory request,
+        PostTimeoutMessage memory message
+    ) public {
         MockModule(testModule).dispatchPost(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);
         handler.handlePostTimeouts(host, message);
     }
-
 }

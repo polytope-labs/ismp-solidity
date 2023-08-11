@@ -45,7 +45,11 @@ contract PostResponseTest is Test {
         return testModule;
     }
 
-    function PostResponseNoChallengeNoTimeout(bytes memory consensusProof, PostRequest memory request, PostResponseMessage memory message) public {
+    function PostResponseNoChallengeNoTimeout(
+        bytes memory consensusProof,
+        PostRequest memory request,
+        PostResponseMessage memory message
+    ) public {
         MockModule(testModule).dispatchPost(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);

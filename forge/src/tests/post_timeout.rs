@@ -3,7 +3,6 @@ use crate::{
     forge::{execute_single, single_runner},
     runner, Keccak256,
 };
-use codec::Encode;
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
@@ -19,7 +18,6 @@ use sp_core::KeccakHasher;
 use sp_trie::{HashDBT, LayoutV0, MemoryDB, StorageProof, TrieDBBuilder, EMPTY_PREFIX};
 use std::{
     collections::{BTreeMap, HashSet},
-    fmt::Debug,
 };
 use trie_db::{Recorder, Trie, TrieDBMutBuilder, TrieMut};
 
@@ -121,7 +119,7 @@ fn generate_proof(entries: Vec<(Vec<u8>, Vec<u8>)>, keys: Vec<Vec<u8>>) -> (H256
             .with_recorder(&mut recorder)
             .build();
 
-        /// try to get the keys we need from the trie
+        // try to get the keys we need from the trie
         for key in &keys {
             let _ = trie_db.get(key).unwrap();
         }

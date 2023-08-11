@@ -9,8 +9,9 @@ import "./interfaces/IConsensusClient.sol";
 import "./interfaces/IHandler.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IIsmpDispatcher.sol";
+import "forge-std/Test.sol";
 
-contract HandlerV1 is IHandler, Context {
+contract HandlerV1 is IHandler, Context, Test {
     using Bytes for bytes;
 
     modifier notFrozen(IIsmpHost host) {
@@ -71,17 +72,16 @@ contract HandlerV1 is IHandler, Context {
             bytes32 commitment = Message.hash(leaf.request);
             require(!host.requestReceipts(commitment), "IHandler: Duplicate request");
 
-            uint256 mmrPos = MerkleMountainRange.leafIndexToPos(uint64(leaf.mmrIndex));
-            leaves[i] = MmrLeaf(leaf.kIndex, mmrPos, commitment);
+            leaves[i] = MmrLeaf(leaf.kIndex, leaf.mmrIndex, commitment);
         }
 
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
-//                require(
-//                    MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
-//                    "IHandler: Invalid request proofs"
-//                );
+        require(
+            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
+            "IHandler: Invalid request proofs"
+        );
 
         for (uint256 i = 0; i < requestsLen; i++) {
             PostRequestLeaf memory leaf = request.requests[i];
@@ -111,17 +111,16 @@ contract HandlerV1 is IHandler, Context {
             bytes32 responseCommitment = Message.hash(leaf.response);
             require(!host.responseCommitments(responseCommitment), "IHandler: Duplicate Post response");
 
-            uint256 mmrPos = MerkleMountainRange.leafIndexToPos(uint64(leaf.mmrIndex));
-            leaves[i] = MmrLeaf(leaf.kIndex, mmrPos, responseCommitment);
+            leaves[i] = MmrLeaf(leaf.kIndex, leaf.mmrIndex, responseCommitment);
         }
 
         bytes32 root = host.stateMachineCommitment(response.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
-//        require(
-//            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
-//            "IHandler: Invalid response proofs"
-//        );
+        require(
+            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
+            "IHandler: Invalid response proofs"
+        );
 
         for (uint256 i = 0; i < responsesLength; i++) {
             PostResponseLeaf memory leaf = response.responses[i];
@@ -181,8 +180,8 @@ contract HandlerV1 is IHandler, Context {
             bytes[] memory keys = new bytes[](1);
             keys[i] = abi.encodePacked(requestCommitment);
 
-//            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
-//            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
+            //            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
+            //            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
 
             host.dispatchIncoming(PostTimeout(request));
         }

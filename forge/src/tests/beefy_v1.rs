@@ -47,6 +47,7 @@ impl subxt::Config for HyperbridgeConfig {
 }
 
 #[tokio::test]
+#[ignore]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
     let relay_ws_url = format!(

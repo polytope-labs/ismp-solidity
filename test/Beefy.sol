@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-
 import "../src/beefy/BeefyV1.sol";
 
 contract BeefyConsensusClientTest is Test {
     // needs a test method so that forge can detect it
-    function testConsensusClient() public {}
+    function testConsensusClient() public {
+    }
 
     BeefyV1 internal beefy;
 
