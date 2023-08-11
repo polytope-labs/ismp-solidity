@@ -4,8 +4,8 @@ use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos};
 use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
 
-ethers::contract::abigen!(BeefyV1, "../out/abi/BeefyV1.abi",);
-ethers::contract::abigen!(HandlerV1, "../out/handler/HandlerV1.abi",);
+ethers::contract::abigen!(BeefyV1, "../out/BeefyV1.sol/BeefyV1.json",);
+ethers::contract::abigen!(HandlerV1, "../out/HandlerV1.sol/HandlerV1.json",);
 
 impl From<ConsensusMessage> for BeefyConsensusProof {
     fn from(message: ConsensusMessage) -> Self {
@@ -29,8 +29,8 @@ impl From<ConsensusMessage> for BeefyConsensusProof {
                     .map(|layer| {
                         layer
                             .into_iter()
-                            .map(|(index, node)| Node { k_index: index.into(), node: node.into() })
-                            .collect()
+                            .map(|(index, node)| Node { k_index: index.into(), node: node.into()
+})                             .collect()
                     })
                     .collect(),
             },

@@ -111,7 +111,7 @@ async fn beefy_consensus_client_test() {
                     "Skipping outdated commitment \n Received signed commitmment with validator_set_id: {:?}\n Current authority set id: {:#?}\n Next authority set id: {:?}\n",
                     signed_commitment.commitment.validator_set_id, consensus_state.current_authority_set.id, consensus_state.current_authority_set.id
                 );
-                continue
+                continue;
             },
             _ => {},
         };
@@ -119,10 +119,10 @@ async fn beefy_consensus_client_test() {
         let consensus_proof: abi::BeefyConsensusProof =
             prover.consensus_proof(signed_commitment).await.unwrap().into();
 
-        if consensus_proof.relay.signed_commitment.commitment.block_number ==
-            consensus_state.latest_height
+        if consensus_proof.relay.signed_commitment.commitment.block_number
+            == consensus_state.latest_height
         {
-            continue
+            continue;
         }
 
         dbg!(&consensus_proof.relay.signed_commitment.commitment);

@@ -1,7 +1,7 @@
 use crate::{
     abi,
     forge::{execute_single, single_runner},
-    keccak256, runner,
+    runner, unwrap_hash, Mmr,
 };
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
@@ -11,25 +11,10 @@ use foundry_evm::Address;
 use ismp::{
     host::{Ethereum, StateMachine},
     router::{Post, Request},
-    util::Keccak256,
 };
-use ismp_primitives::mmr::{DataOrHash, Leaf, MmrHasher};
-use merkle_mountain_range::util::{MemMMR, MemStore};
+use ismp_primitives::mmr::{DataOrHash, Leaf};
 use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
-
-pub struct Hasher;
-
-impl Keccak256 for Hasher {
-    fn keccak256(bytes: &[u8]) -> H256
-    where
-        Self: Sized,
-    {
-        keccak256(bytes).into()
-    }
-}
-
-type Mmr = MemMMR<DataOrHash, MmrHasher<Hasher>>;
 
 #[tokio::test]
 async fn test_post_request_proof() {
@@ -43,7 +28,7 @@ async fn test_post_request_proof() {
         source: StateMachine::Polkadot(2000),
         dest: StateMachine::Ethereum(Ethereum::ExecutionLayer),
         nonce: 0,
-        from: address.as_bytes().to_vec(),
+        from: contract.sender.as_bytes().to_vec(),
         to: destination.as_bytes().to_vec(),
         timeout_timestamp: 50,
         data: vec![],
@@ -52,10 +37,9 @@ async fn test_post_request_proof() {
     let request = DataOrHash::Data(Leaf::Request(Request::Post(post.clone())));
 
     // create the mmr tree and insert it
-    let store = MemStore::default();
-    let mut mmr = Mmr::new(0, store);
+    let mut mmr = Mmr::default();
 
-    for _ in 0..30 {
+    for _ in 0..12 {
         let hash = H256::random();
         mmr.push(DataOrHash::Hash(hash)).unwrap();
     }
@@ -107,11 +91,4 @@ async fn test_post_request_proof() {
         (Token::Bytes(consensus_proof), message.into_token()),
     )
     .unwrap();
-}
-
-fn unwrap_hash(item: &DataOrHash) -> [u8; 32] {
-    match item {
-        DataOrHash::Hash(h) => (*h).into(),
-        _ => panic!("not a hash"),
-    }
 }
