@@ -1,4 +1,8 @@
-use crate::{abi, forge::{execute_single, single_runner}, runner, Keccak256};
+use crate::{
+    abi,
+    forge::{execute_single, single_runner},
+    runner, Keccak256,
+};
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
