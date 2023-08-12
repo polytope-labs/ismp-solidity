@@ -6,7 +6,7 @@ import "openzeppelin/utils/introspection/IERC165.sol";
 import "openzeppelin/utils/Context.sol";
 import "openzeppelin/utils/math/Math.sol";
 
-import "./interfaces/IISMPModule.sol";
+import "./interfaces/IIsmpModule.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IHandler.sol";
 
