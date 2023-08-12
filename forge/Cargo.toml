@@ -30,13 +30,16 @@ foundry-evm = { git = "https://github.com/foundry-rs/foundry", rev = "25d3ce7ca1
 ethers = { git = "https://github.com/gakonst/ethers-rs", features = ["ethers-solc"] }
 # polytope-labs
 merkle-mountain-range-labs = { package = "ckb-merkle-mountain-range", git = "https://github.com/polytope-labs/merkle-mountain-range", branch = "seun/simplified-mmr" }
-merkle-mountain-range = { package = "ckb-merkle-mountain-range", version = "0.5.2"}
+merkle-mountain-range = { package = "ckb-merkle-mountain-range", version = "0.5.2" }
 
 rs_merkle = { git = "https://github.com/polytope-labs/rs-merkle", branch = "seun/2d-merkle-proofs" }
 ismp-evm = { git = "https://github.com/polytope-labs/ismp-substrate", branch = "main" }
 ismp-primitives = { git = "https://github.com/polytope-labs/ismp-substrate", branch = "main" }
 ismp = { git = "https://github.com/polytope-labs/ismp-rs", branch = "main" }
-beefy-prover = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42" }
-beefy-verifier-primitives = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42" }
+beefy-prover = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42", optional = true }
+beefy-verifier-primitives = { git = "https://github.com/polytope-labs/beefy", branch = "seun/polkadot-v0.9.42", optional = true }
 ## substrate
 beefy-primitives = { package = "sp-consensus-beefy", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42" }
+
+[features]
+beefy = ["beefy-prover", "beefy-verifier-primitives"]
