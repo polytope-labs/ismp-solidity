@@ -6,8 +6,7 @@ import "../src/beefy/BeefyV1.sol";
 
 contract BeefyConsensusClientTest is Test {
     // needs a test method so that forge can detect it
-    function testConsensusClient() public {
-    }
+    function testConsensusClient() public {}
 
     BeefyV1 internal beefy;
 

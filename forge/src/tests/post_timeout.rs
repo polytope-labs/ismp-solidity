@@ -1,13 +1,10 @@
-use crate::{
-    abi,
-    forge::{execute_single, single_runner},
-    runner, Keccak256,
-};
+use crate::{abi, forge::{execute_single, single_runner}, runner, Keccak256};
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
 };
 use foundry_evm::Address;
+use hex_literal::hex;
 use ismp::{
     host::{Ethereum, StateMachine},
     router::{Post, Request},
@@ -16,9 +13,7 @@ use ismp::{
 use primitive_types::H256;
 use sp_core::KeccakHasher;
 use sp_trie::{HashDBT, LayoutV0, MemoryDB, StorageProof, TrieDBBuilder, EMPTY_PREFIX};
-use std::{
-    collections::{BTreeMap, HashSet},
-};
+use std::collections::{BTreeMap, HashSet};
 use trie_db::{Recorder, Trie, TrieDBMutBuilder, TrieMut};
 
 #[tokio::test]
@@ -27,6 +22,9 @@ async fn test_post_timeout_proof() {
     let (mut contract, address) = single_runner(&mut runner, "PostTimeoutTest").await;
     let module =
         execute_single::<Address, _>(&mut contract, address.clone(), "module", ()).unwrap();
+
+    let storage_prefix =
+        hex!("103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a").to_vec();
 
     // create post request object
     let post = Post {
@@ -39,14 +37,17 @@ async fn test_post_timeout_proof() {
         data: vec![],
         gas_limit: 0,
     };
-    let key = hash_request::<Keccak256>(&Request::Post(post.clone())).0.to_vec();
-    let mut entries = vec![];
-    entries.extend(
-        (1..10)
-            .into_iter()
-            .map(|_| (H256::random().0.to_vec(), H256::random().0.to_vec()))
-            .collect::<Vec<_>>(),
-    );
+    let mut key = storage_prefix.clone();
+    key.extend_from_slice(hash_request::<Keccak256>(&Request::Post(post.clone())).as_ref());
+
+    let entries = (1..50)
+        .into_iter()
+        .map(|_| {
+            let mut key = storage_prefix.clone();
+            key.extend_from_slice(&H256::random().0.to_vec());
+            (key, H256::random().0.to_vec())
+        })
+        .collect::<Vec<_>>();
 
     let (root, proof) = generate_proof(entries.clone(), vec![key.clone()]);
 

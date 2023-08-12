@@ -19,6 +19,9 @@ contract HandlerV1 is IHandler, Context, Test {
         _;
     }
 
+    // Storage prefix for request receipts in pallet-ismp
+    bytes private constant REQUEST_COMMITMENT_STORAGE_PREFIX = hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
+
     /**
      * @dev Handle incoming consensus messages
      * @param host - Ismp host
@@ -129,11 +132,38 @@ contract HandlerV1 is IHandler, Context, Test {
     }
 
     /**
+     * @dev check timeout proofs then dispatch to modules
+     * @param host - Ismp host
+     * @param message - batch post request timeouts
+     */
+    function handlePostTimeouts(IIsmpHost host, PostTimeoutMessage memory message) external notFrozen(host) {
+        // fetch the state commitment
+        StateCommitment memory state = host.stateMachineCommitment(message.height);
+        uint256 timeoutsLength = message.timeouts.length;
+
+        for (uint256 i = 0; i < timeoutsLength; i++) {
+            PostRequest memory request = message.timeouts[i];
+            require(state.timestamp > request.timeoutTimestamp, "Request not timed out");
+
+            bytes32 requestCommitment = Message.hash(request);
+            require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
+
+            bytes[] memory keys = new bytes[](1);
+            keys[i] = bytes.concat(REQUEST_COMMITMENT_STORAGE_PREFIX, bytes.concat(requestCommitment));
+
+            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, message.proof, keys)[0];
+            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
+
+            host.dispatchIncoming(PostTimeout(request));
+        }
+    }
+
+    /**
      * @dev check response proofs, message delay and timeouts, then dispatch get responses to modules
      * @param host - Ismp host
      * @param message - batch get responses
      */
-    function handleGetResponses(IIsmpHost host, GetResponseMessage memory message) external {
+    function handleGetResponses(IIsmpHost host, GetResponseMessage memory message) external notFrozen(host) {
         uint256 delay = host.timestamp() - host.stateMachineCommitmentUpdateTime(message.height);
         require(delay > host.challengePeriod(), "IHandler: still in challenge period");
 
@@ -161,38 +191,11 @@ contract HandlerV1 is IHandler, Context, Test {
     }
 
     /**
-     * @dev check timeout proofs then dispatch to modules
-     * @param host - Ismp host
-     * @param message - batch post request timeouts
-     */
-    function handlePostTimeouts(IIsmpHost host, PostTimeoutMessage memory message) external {
-        // fetch the state commitment
-        StateCommitment memory state = host.stateMachineCommitment(message.height);
-        uint256 timeoutsLength = message.timeouts.length;
-
-        for (uint256 i = 0; i < timeoutsLength; i++) {
-            PostRequest memory request = message.timeouts[i];
-            require(state.timestamp > request.timeoutTimestamp, "Request not timed out");
-
-            bytes32 requestCommitment = Message.hash(request);
-            require(host.requestCommitments(requestCommitment), "IHandler: Unknown request");
-
-            bytes[] memory keys = new bytes[](1);
-            keys[i] = abi.encodePacked(requestCommitment);
-
-            //            StorageValue memory entry = MerklePatricia.VerifySubstrateProof(state.stateRoot, keys, message.proof)[0];
-            //            require(entry.value.equals(new bytes(0)), "IHandler: Invalid non-membership proof");
-
-            host.dispatchIncoming(PostTimeout(request));
-        }
-    }
-
-    /**
      * @dev dispatch to modules
      * @param host - Ismp host
      * @param message - batch get request timeouts
      */
-    function handleGetTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external {
+    function handleGetTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external notFrozen(host) {
         uint256 timeoutsLength = message.timeouts.length;
 
         for (uint256 i = 0; i < timeoutsLength; i++) {

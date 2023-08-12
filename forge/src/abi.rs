@@ -29,8 +29,8 @@ impl From<ConsensusMessage> for BeefyConsensusProof {
                     .map(|layer| {
                         layer
                             .into_iter()
-                            .map(|(index, node)| Node { k_index: index.into(), node: node.into()
-})                             .collect()
+                            .map(|(index, node)| Node { k_index: index.into(), node: node.into() })
+                            .collect()
                     })
                     .collect(),
             },

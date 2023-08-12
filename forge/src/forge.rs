@@ -1,7 +1,7 @@
 use ethers::{
     abi::{Detokenize, Tokenize},
     solc::{remappings::Remapping, Project, ProjectCompileOutput, ProjectPathsConfig},
-    types::U256,
+    types::{Log, U256},
 };
 use forge::{
     executor::{
@@ -13,6 +13,7 @@ use forge::{
 };
 use foundry_config::{fs_permissions::PathPermission, Config, FsPermissions};
 use foundry_evm::{
+    decode::decode_console_logs,
     executor::{Backend, EvmError, ExecutorBuilder},
     Address,
 };
@@ -21,8 +22,6 @@ use std::{
     fmt::Debug,
     path::{Path, PathBuf},
 };
-use ethers::types::Log;
-use foundry_evm::decode::decode_console_logs;
 
 static PROJECT: Lazy<Project> = Lazy::new(|| {
     let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -224,11 +223,10 @@ where
 
     match &result {
         Ok(call) => print_logs(func, call.gas_used, &call.logs),
-        Err(EvmError::Execution(execution)) => print_logs(func, execution.gas_used, &execution.logs),
+        Err(EvmError::Execution(execution)) =>
+            print_logs(func, execution.gas_used, &execution.logs),
         _ => {},
     };
-
-
 
     Ok(result?.result)
 }
