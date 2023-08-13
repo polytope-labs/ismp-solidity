@@ -1,6 +1,10 @@
 #![cfg(test)]
 
-use crate::{abi, forge::{execute_single, single_runner}, runner, Keccak256};
+use crate::{
+    abi,
+    forge::{execute_single, single_runner},
+    runner, Keccak256,
+};
 use ethers::{
     abi::{AbiEncode, Token, Tokenizable},
     core::types::U256,
@@ -9,12 +13,12 @@ use foundry_evm::Address;
 use ismp::{
     host::{Ethereum, StateMachine},
     router::{Get, Request},
+    util::hash_request,
 };
 use primitive_types::H256;
 use sp_core::KeccakHasher;
 use sp_trie::{LayoutV0, MemoryDB};
 use std::collections::HashSet;
-use ismp::util::hash_request;
 use trie_db::{Recorder, Trie, TrieDBBuilder, TrieDBMutBuilder, TrieMut};
 
 fn generate_proof(request: H256, key: Vec<u8>) -> (H256, Vec<Vec<u8>>) {
@@ -61,7 +65,8 @@ fn generate_proof(request: H256, key: Vec<u8>) -> (H256, Vec<Vec<u8>>) {
         let mut db = <MemoryDB<KeccakHasher>>::default();
         let mut root = Default::default();
         {
-            let mut trie = TrieDBMutBuilder::<LayoutV0<KeccakHasher>>::new(&mut db, &mut root).build();
+            let mut trie =
+                TrieDBMutBuilder::<LayoutV0<KeccakHasher>>::new(&mut db, &mut root).build();
             for (key, value) in &entries {
                 trie.insert(key, &value).unwrap();
             }

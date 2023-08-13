@@ -105,10 +105,7 @@ async fn test_post_timeout_proof() {
     .unwrap();
 }
 
-fn generate_proof(
-    entries: Vec<(Vec<u8>, Vec<u8>)>,
-    keys: Vec<Vec<u8>>,
-) -> (H256, Vec<Vec<u8>>) {
+fn generate_proof(entries: Vec<(Vec<u8>, Vec<u8>)>, keys: Vec<Vec<u8>>) -> (H256, Vec<Vec<u8>>) {
     // Populate DB with full trie from entries.
     let (db, root) = {
         let mut db = <MemoryDB<KeccakHasher>>::default();

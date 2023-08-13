@@ -163,10 +163,6 @@ pub async fn single_runner<'a>(
 ) -> (ContractRunner<'a>, Address) {
     let db = Backend::spawn(runner.fork.take()).await;
 
-    let names = runner.contracts.iter().map(|(id, _)| id.name.clone()).collect::<Vec<_>>();
-
-    println!("names: {:?}", names);
-
     let (id, (abi, deploy_code, libs)) = runner
         .contracts
         .iter()
