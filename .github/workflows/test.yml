@@ -50,6 +50,7 @@ jobs:
           RUSTFLAGS: "-C link-args=-Wl,--allow-multiple-definition"
         with:
           command: test
+          toolchain: nightly
           args: --release --locked --manifest-path ./forge/Cargo.toml -- --nocapture
 
   fmt:
@@ -65,4 +66,5 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
+          toolchain: nightly
           args: --manifest-path ./forge/Cargo.toml --all -- --check
