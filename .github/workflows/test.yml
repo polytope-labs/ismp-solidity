@@ -46,6 +46,8 @@ jobs:
         id: test
 
       - uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: "-C link-args=-Wl,--allow-multiple-definition"
         with:
           command: test
           args: --release --locked --manifest-path ./forge/Cargo.toml -- --nocapture
