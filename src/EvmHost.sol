@@ -37,13 +37,13 @@ abstract contract EvmHost is IIsmpHost, Context, Test {
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
 
+    // commitment of all outgoing responses
+    mapping(bytes32 => bool) private _responseCommitments;
+
     // commitment of all incoming requests
     mapping(bytes32 => bool) private _requestReceipts;
 
     // commitment of all incoming responses
-    mapping(bytes32 => bool) private _responseCommitments;
-
-    // commitment of all outgoing responses
     mapping(bytes32 => bool) private _responseReceipts;
 
     // (stateMachineId => (blockHeight => StateCommitment))
@@ -297,7 +297,7 @@ abstract contract EvmHost is IIsmpHost, Context, Test {
         IIsmpModule(origin).onGetResponse(response);
 
         bytes32 commitment = Message.hash(response);
-        _responseCommitments[commitment] = true;
+        _responseReceipts[commitment] = true;
     }
 
     /**
@@ -310,7 +310,7 @@ abstract contract EvmHost is IIsmpHost, Context, Test {
 
         // Delete Commitment
         bytes32 commitment = Message.hash(request);
-        delete _responseReceipts[commitment];
+        delete _requestCommitments[commitment];
     }
 
     /**
@@ -324,7 +324,7 @@ abstract contract EvmHost is IIsmpHost, Context, Test {
 
         // Delete Commitment
         bytes32 commitment = Message.hash(request);
-        delete _responseReceipts[commitment];
+        delete _requestCommitments[commitment];
     }
 
     /**
