@@ -56,6 +56,14 @@ static EVM_OPTS: Lazy<EvmOpts> = Lazy::new(|| EvmOpts {
     ..Default::default()
 });
 
+static LOL: Lazy<()> = Lazy::new(|| {
+    use tracing::Level;
+    use tracing_subscriber::FmtSubscriber;
+
+    let subscriber = FmtSubscriber::builder().with_max_level(Level::TRACE).finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+});
+
 static COMPILED: Lazy<ProjectCompileOutput> = Lazy::new(|| {
     let out = (*PROJECT).compile().unwrap();
     if out.has_compiler_errors() {
@@ -81,6 +89,7 @@ fn manifest_root() -> PathBuf {
 }
 
 /// Builds a non-tracing runner
+#[cfg(target_os = "macos")]
 fn runner_with_config(mut config: Config) -> MultiContractRunner {
     use foundry_evm::executor::SpecId;
 
@@ -89,6 +98,21 @@ fn runner_with_config(mut config: Config) -> MultiContractRunner {
     base_runner()
         .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
         .evm_spec(SpecId::SHANGHAI)
+        .sender(config.sender)
+        .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(), EVM_OPTS.clone())
+        .unwrap()
+}
+
+/// Builds a non-tracing runner
+#[cfg(not(target_os = "macos"))]
+fn runner_with_config(mut config: Config) -> MultiContractRunner {
+    use foundry_evm::executor::SpecId;
+
+    config.allow_paths.push(manifest_root());
+
+    base_runner()
+        .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
+        .evm_spec(SpecId::MERGE)
         .sender(config.sender)
         .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(), EVM_OPTS.clone())
         .unwrap()
@@ -127,7 +151,7 @@ where
         .with_config(runner.env.clone())
         .with_spec(runner.evm_spec)
         .with_gas_limit(runner.evm_opts.gas_limit())
-        .set_tracing(runner.evm_opts.verbosity >= 3)
+        .set_tracing(true)
         .set_coverage(runner.coverage)
         .build(db.clone());
 
@@ -173,14 +197,14 @@ pub async fn single_runner<'a>(
         .unwrap();
 
     dbg!(deploy_code.len());
-    dbg!(deploy_code.len() > usize::MAX);
+    dbg!(2 * 0x6000); // max init codesize
 
     let executor = ExecutorBuilder::default()
         .with_cheatcodes(runner.cheats_config.clone())
         .with_config(runner.env.clone())
         .with_spec(runner.evm_spec)
         .with_gas_limit(runner.evm_opts.gas_limit())
-        .set_tracing(runner.evm_opts.verbosity >= 3)
+        .set_tracing(true)
         .set_coverage(runner.coverage)
         .build(db.clone());
 

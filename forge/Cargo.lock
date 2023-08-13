@@ -3656,6 +3656,8 @@ dependencies = [
  "sp-trie 17.0.0",
  "subxt",
  "tokio",
+ "tracing",
+ "tracing-subscriber 0.3.17",
  "trie-db 0.24.0",
 ]
 
