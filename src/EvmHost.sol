@@ -9,7 +9,6 @@ import "openzeppelin/utils/math/Math.sol";
 import "./interfaces/IIsmpModule.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IHandler.sol";
-import "forge-std/Test.sol";
 
 struct HostParams {
     // default timeout in seconds for requests.
@@ -33,7 +32,7 @@ struct HostParams {
 }
 
 /// Ismp implementation for Evm hosts
-abstract contract EvmHost is IIsmpHost, Context, Test {
+abstract contract EvmHost is IIsmpHost, Context {
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
 

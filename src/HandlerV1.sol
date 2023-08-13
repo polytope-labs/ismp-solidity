@@ -9,9 +9,8 @@ import "./interfaces/IConsensusClient.sol";
 import "./interfaces/IHandler.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IIsmpDispatcher.sol";
-import "forge-std/Test.sol";
 
-contract HandlerV1 is IHandler, Context, Test {
+contract HandlerV1 is IHandler, Context {
     using Bytes for bytes;
 
     modifier notFrozen(IIsmpHost host) {

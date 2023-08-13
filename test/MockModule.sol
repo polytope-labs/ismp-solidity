@@ -4,9 +4,8 @@
 pragma solidity ^0.8.2;
 
 import "../src/interfaces/IIsmpModule.sol";
-import "forge-std/Test.sol";
 
-contract MockModule is IIsmpModule, Test {
+contract MockModule is IIsmpModule {
     event PostResponseReceived();
     event GetResponseReceived();
     event PostTimeoutReceived();
@@ -65,10 +64,10 @@ contract MockModule is IIsmpModule, Test {
     }
 
     function onGetResponse(GetResponse memory response) public onlyIsmpHost {
-        console.log("key: ");
-        console.logBytes(response.values[0].key);
-        console.log("value: ");
-        console.logBytes(response.values[0].value);
+//        console.log("key: ");
+//        console.logBytes(response.values[0].key);
+//        console.log("value: ");
+//        console.logBytes(response.values[0].value);
         emit GetResponseReceived();
     }
 

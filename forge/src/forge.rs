@@ -46,9 +46,9 @@ static EVM_OPTS: Lazy<EvmOpts> = Lazy::new(|| EvmOpts {
         tx_origin: Config::DEFAULT_SENDER,
         block_number: 1,
         block_timestamp: 1,
+        code_size_limit: Some(usize::MAX),
         ..Default::default()
     },
-    verbosity: 2,
     sender: Config::DEFAULT_SENDER,
     initial_balance: U256::MAX,
     ffi: true,
@@ -80,20 +80,20 @@ fn manifest_root() -> PathBuf {
     root.to_path_buf()
 }
 
-/// Builds a non-tracing runner
-#[cfg(target_os = "macos")]
-fn runner_with_config(mut config: Config) -> MultiContractRunner {
-    config.allow_paths.push(manifest_root());
+// /// Builds a non-tracing runner
+// #[cfg(target_os = "macos")]
+// fn runner_with_config(mut config: Config) -> MultiContractRunner {
+//     config.allow_paths.push(manifest_root());
+//
+//     base_runner()
+//         .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
+//         .sender(config.sender)
+//         .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(),
+// EVM_OPTS.clone())         .unwrap()
+// }
 
-    base_runner()
-        .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
-        .sender(config.sender)
-        .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(), EVM_OPTS.clone())
-        .unwrap()
-}
-
 /// Builds a non-tracing runner
-#[cfg(not(target_os = "macos"))]
+// #[cfg(not(target_os = "macos"))]
 fn runner_with_config(mut config: Config) -> MultiContractRunner {
     use foundry_evm::executor::SpecId;
 
@@ -101,7 +101,7 @@ fn runner_with_config(mut config: Config) -> MultiContractRunner {
 
     base_runner()
         .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
-        .evm_spec(SpecId::SHANGHAI)
+        .evm_spec(SpecId::MERGE)
         .sender(config.sender)
         .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(), EVM_OPTS.clone())
         .unwrap()
@@ -185,6 +185,9 @@ pub async fn single_runner<'a>(
         .find(|(id, (_, _, _))| id.name == contract_name)
         .unwrap();
 
+    dbg!(deploy_code.len());
+    dbg!(deploy_code.len() > usize::MAX);
+
     let executor = ExecutorBuilder::default()
         .with_cheatcodes(runner.cheats_config.clone())
         .with_config(runner.env.clone())
@@ -206,7 +209,9 @@ pub async fn single_runner<'a>(
     );
 
     let setup = single_runner.setup(true);
-    let TestSetup { address, .. } = setup;
+    let TestSetup { address, reason, .. } = setup;
+    dbg!(reason);
+    dbg!(&runner.errors);
 
     (single_runner, address)
 }
