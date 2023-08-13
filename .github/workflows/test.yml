@@ -22,7 +22,7 @@ jobs:
           submodules: recursive
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
 
       - uses: webfactory/ssh-agent@v0.7.0
