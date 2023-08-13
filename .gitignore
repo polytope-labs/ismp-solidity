@@ -11,4 +11,5 @@ out/
 .env
 
 target/
+.cargo/
 .idea

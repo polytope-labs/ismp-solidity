@@ -24,6 +24,11 @@ jobs:
         with:
           toolchain: nightly
           override: true
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
       - uses: actions-rs/cargo@v1
         with:
           command: test

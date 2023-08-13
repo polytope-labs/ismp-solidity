@@ -1,3 +1,0 @@
-#paths = ["../../beefy"]
-[net]
-git-fetch-with-cli = true
