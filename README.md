@@ -9,7 +9,6 @@
  - [`IHandler`](./src/interfaces/IHandler.sol)
    - [`HandlerV1`](./src/HandlerV1.sol)
  - [`IIsmpDispatcher`](./src/interfaces/IIsmpDispatcher.sol)
-     - [`SubstrateDispatcher`](src/SubstrateDispatcher.sol)
  - [`IIsmpHost`](./src/interfaces/IIsmpHost.sol)
    - [`EvmHost`](./src/EvmHost.sol)
  - [`IIsmpModule`](./src/interfaces/IIsmpModule.sol)
