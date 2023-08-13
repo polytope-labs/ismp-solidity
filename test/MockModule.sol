@@ -4,8 +4,9 @@
 pragma solidity ^0.8.2;
 
 import "../src/interfaces/IIsmpModule.sol";
+import "forge-std/Test.sol";
 
-contract MockModule is IIsmpModule {
+contract MockModule is IIsmpModule, Test {
     event PostResponseReceived();
     event GetResponseReceived();
     event PostTimeoutReceived();
@@ -29,16 +30,29 @@ contract MockModule is IIsmpModule {
         _host = host;
     }
 
-    function dispatchPost(PostRequest memory request) public returns (bytes32) {
+    function dispatch(PostRequest memory request) public returns (bytes32) {
         bytes32 commitment = Message.hash(request);
-        DispatchPost memory dispatchPost = DispatchPost({
+        DispatchPost memory post = DispatchPost({
             body: request.body,
             dest: request.dest,
             timeout: request.timeoutTimestamp,
             to: request.to,
             gaslimit: request.gaslimit
         });
-        IIsmpDispatcher(_host).dispatch(dispatchPost);
+        IIsmpDispatcher(_host).dispatch(post);
+        return commitment;
+    }
+
+    function dispatch(GetRequest memory request) public returns (bytes32) {
+        bytes32 commitment = Message.hash(request);
+        DispatchGet memory get = DispatchGet({
+            dest: request.dest,
+            height: request.height,
+            keys: request.keys,
+            timeout: request.timeoutTimestamp,
+            gaslimit: request.gaslimit
+        });
+        IIsmpDispatcher(_host).dispatch(get);
         return commitment;
     }
 
@@ -51,6 +65,10 @@ contract MockModule is IIsmpModule {
     }
 
     function onGetResponse(GetResponse memory response) public onlyIsmpHost {
+        console.log("key: ");
+        console.logBytes(response.values[0].key);
+        console.log("value: ");
+        console.logBytes(response.values[0].value);
         emit GetResponseReceived();
     }
 

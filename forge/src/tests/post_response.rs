@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use crate::{
     abi,
     forge::{execute_single, single_runner},
@@ -68,7 +70,7 @@ async fn test_post_response_proof() {
     }
     .encode();
 
-    let sol_post = abi::PostRequest {
+    let mut sol_post = abi::PostRequest {
         source: post.source.to_string().as_bytes().to_vec().into(),
         dest: post.dest.to_string().as_bytes().to_vec().into(),
         nonce: post.nonce,
@@ -90,6 +92,8 @@ async fn test_post_response_proof() {
             k_index: k_index.into(),
         }],
     };
+
+    sol_post.timeout_timestamp -= 1;
 
     // execute the test
     execute_single::<(), _>(

@@ -204,7 +204,12 @@ library Message {
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
-        bytes memory keysEncoding = abi.encode(req.keys);
+        bytes memory keysEncoding = bytes("");
+        uint256 len = req.keys.length;
+        for (uint256 i = 0; i < len; i++) {
+            keysEncoding = bytes.concat(keysEncoding, req.keys[i]);
+        }
+
         return keccak256(
             abi.encodePacked(
                 req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding, req.gaslimit

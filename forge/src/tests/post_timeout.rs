@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use crate::{
     abi,
     forge::{execute_single, single_runner},
@@ -75,7 +77,7 @@ async fn test_post_timeout_proof() {
     }
     .encode();
 
-    let sol_post = abi::PostRequest {
+    let mut sol_post = abi::PostRequest {
         source: post.source.to_string().as_bytes().to_vec().into(),
         dest: post.dest.to_string().as_bytes().to_vec().into(),
         nonce: post.nonce,
@@ -91,6 +93,7 @@ async fn test_post_timeout_proof() {
         timeouts: vec![sol_post.clone()],
         height,
     };
+    sol_post.timeout_timestamp -= 1;
 
     // execute the test
     execute_single::<(), _>(
@@ -102,7 +105,10 @@ async fn test_post_timeout_proof() {
     .unwrap();
 }
 
-fn generate_proof(entries: Vec<(Vec<u8>, Vec<u8>)>, keys: Vec<Vec<u8>>) -> (H256, Vec<Vec<u8>>) {
+fn generate_proof(
+    entries: Vec<(Vec<u8>, Vec<u8>)>,
+    keys: Vec<Vec<u8>>,
+) -> (H256, Vec<Vec<u8>>) {
     // Populate DB with full trie from entries.
     let (db, root) = {
         let mut db = <MemoryDB<KeccakHasher>>::default();

@@ -20,7 +20,8 @@ contract HandlerV1 is IHandler, Context, Test {
     }
 
     // Storage prefix for request receipts in pallet-ismp
-    bytes private constant REQUEST_COMMITMENT_STORAGE_PREFIX = hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
+    bytes private constant REQUEST_COMMITMENT_STORAGE_PREFIX =
+        hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
 
     /**
      * @dev Handle incoming consensus messages

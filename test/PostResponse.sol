@@ -27,7 +27,7 @@ contract PostResponseTest is Test {
             admin: address(0),
             crosschainGovernor: address(0),
             handler: address(handler),
-            defaultTimeout: 5000,
+            defaultTimeout: 0,
             unStakingPeriod: 5000,
             // for this test
             challengePeriod: 0,
@@ -50,7 +50,7 @@ contract PostResponseTest is Test {
         PostRequest memory request,
         PostResponseMessage memory message
     ) public {
-        MockModule(testModule).dispatchPost(request);
+        MockModule(testModule).dispatch(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);
         handler.handlePostResponses(host, message);

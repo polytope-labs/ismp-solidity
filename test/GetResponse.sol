@@ -10,9 +10,9 @@ import "./TestHost.sol";
 import {MockModule} from "./MockModule.sol";
 import "../src/HandlerV1.sol";
 
-contract PostTimeoutTest is Test {
+contract GetResponseTest is Test {
     // needs a test method so that forge can detect it
-    function testPostTimeout() public {}
+    function testPostResponse() public {}
 
     IConsensusClient internal consensusClient;
     EvmHost internal host;
@@ -45,14 +45,14 @@ contract PostTimeoutTest is Test {
         return testModule;
     }
 
-    function PostTimeoutNoChallenge(
+    function GetResponseNoChallengeNoTimeout(
         bytes memory consensusProof,
-        PostRequest memory request,
-        PostTimeoutMessage memory message
+        GetRequest memory request,
+        GetResponseMessage memory message
     ) public {
         MockModule(testModule).dispatch(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);
-        handler.handlePostTimeouts(host, message);
+        handler.handleGetResponses(host, message);
     }
 }

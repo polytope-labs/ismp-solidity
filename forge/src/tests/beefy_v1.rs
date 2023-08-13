@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use crate::{abi, abi::local, execute, runner};
 use beefy_primitives::{crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFinalityProof};
 use beefy_prover::Prover;

@@ -9,6 +9,7 @@ import "openzeppelin/utils/math/Math.sol";
 import "./interfaces/IIsmpModule.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IHandler.sol";
+import "forge-std/Test.sol";
 
 struct HostParams {
     // default timeout in seconds for requests.
@@ -32,7 +33,7 @@ struct HostParams {
 }
 
 /// Ismp implementation for Evm hosts
-abstract contract EvmHost is IIsmpHost, Context {
+abstract contract EvmHost is IIsmpHost, Context, Test {
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
 
@@ -269,8 +270,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostRequest memory request) external onlyHandler {
         address destination = _bytesToAddress(request.to);
-        //        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
-
         IIsmpModule(destination).onAccept(request);
 
         bytes32 commitment = Message.hash(request);
@@ -283,7 +282,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        //        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onPostResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -296,7 +294,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        //        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onGetResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -309,7 +306,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetRequest memory request) external onlyHandler {
         address origin = _bytesToAddress(request.from);
-        //        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onGetTimeout(request);
 
         // Delete Commitment
@@ -324,7 +320,6 @@ abstract contract EvmHost is IIsmpHost, Context {
     function dispatchIncoming(PostTimeout memory timeout) external onlyHandler {
         PostRequest memory request = timeout.request;
         address origin = _bytesToAddress(request.from);
-        //        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: Invalid module"); doesn't work
         IIsmpModule(origin).onPostTimeout(request);
 
         // Delete Commitment
@@ -337,17 +332,18 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param request - post dispatch request
      */
     function dispatch(DispatchPost memory request) external {
-        //        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        PostRequest memory _request = PostRequest(
-            host(),
-            request.dest,
-            uint64(_nextNonce()),
-            abi.encodePacked(_msgSender()),
-            request.to,
-            request.timeout,
-            request.body,
-            request.gaslimit
-        );
+        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
+        PostRequest memory _request = PostRequest({
+            source: host(),
+            dest: request.dest,
+            nonce: uint64(_nextNonce()),
+            from: abi.encodePacked(_msgSender()),
+            to: request.to,
+            timeoutTimestamp: timeout,
+            body: request.body,
+            gaslimit: request.gaslimit
+        });
+
         // make the commitment
         bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
@@ -360,7 +356,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.nonce,
             _request.timeoutTimestamp,
             _request.body
-            );
+        );
     }
 
     /**
@@ -368,18 +364,17 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param request - get dispatch request
      */
     function dispatch(DispatchGet memory request) external {
-        //        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
         uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
-        GetRequest memory _request = GetRequest(
-            host(),
-            request.dest,
-            uint64(_nextNonce()),
-            abi.encodePacked(_msgSender()),
-            timeout,
-            request.keys,
-            request.height,
-            request.gaslimit
-        );
+        GetRequest memory _request = GetRequest({
+            source: host(),
+            dest: request.dest,
+            nonce: uint64(_nextNonce()),
+            from: abi.encodePacked(_msgSender()),
+            timeoutTimestamp: timeout,
+            keys: request.keys,
+            height: request.height,
+            gaslimit: request.gaslimit
+        });
 
         // make the commitment
         bytes32 commitment = Message.hash(_request);
@@ -393,7 +388,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external {
-        //        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "EvmHost: invalid module"); doesn't work
         bytes32 receipt = Message.hash(response.request);
         require(_requestReceipts[receipt], "EvmHost: unknown request");
 
@@ -409,7 +403,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             response.request.timeoutTimestamp,
             response.request.body,
             response.response
-            );
+        );
     }
 
     /**
