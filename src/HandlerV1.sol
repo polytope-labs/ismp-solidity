@@ -8,7 +8,6 @@ import "openzeppelin/utils/Context.sol";
 import "./interfaces/IConsensusClient.sol";
 import "./interfaces/IHandler.sol";
 import "./interfaces/IIsmpHost.sol";
-import "./interfaces/IIsmpDispatcher.sol";
 
 contract HandlerV1 is IHandler, Context {
     using Bytes for bytes;
