@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
-import {StateCommitment, StateMachineHeight, Consensus} from "./IConsensusClient.sol";
-import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout} from "./IIsmpDispatcher.sol";
+import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
+import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmpDispatcher.sol";
 
 struct BridgeParams {
     address admin;
@@ -27,7 +27,7 @@ interface IIsmpHost is IIsmpDispatcher {
     /**
      * @return the host timestamp
      */
-    function hostTimestamp() external returns (uint256);
+    function timestamp() external returns (uint256);
 
     /**
      * @return the `frozen` status

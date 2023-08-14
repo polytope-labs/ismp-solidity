@@ -1,21 +1,33 @@
-name: test
+name: Build & Test
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  check:
-    strategy:
-      fail-fast: true
-
-    name: Foundry project
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GH_TOKEN }}
           submodules: recursive
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -32,3 +44,27 @@ jobs:
         run: |
           forge test -vvv
         id: test
+
+      - uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: "-C link-args=-Wl,--allow-multiple-definition"
+        with:
+          command: test
+          toolchain: stable
+          args: --release --locked --manifest-path ./forge/Cargo.toml -- --nocapture
+
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          toolchain: nightly
+          args: --manifest-path ./forge/Cargo.toml --all -- --check

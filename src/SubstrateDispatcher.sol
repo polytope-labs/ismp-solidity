@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "./interfaces/IIsmpDispatcher.sol";
 import "./interfaces/IIsmpModule.sol";
 
-library SubstrateHost {
+library SubstrateDispatcher {
     // addresses of the precompiles
     address public constant POST_REQUEST_DISPATCHER = 0x222A98a2832ae77E72a768bF5be1F82D8959f4Ec;
     address public constant POST_RESPONSE_DISPATCHER = 0xEB928e2de75Cb5ab60aBE75f539C5312aeb46f38;
@@ -15,8 +15,7 @@ library SubstrateHost {
      * @param request - post request
      */
     function dispatch(DispatchPost memory request) internal view {
-        bytes memory input =
-            abi.encode(request.dest, request.to, request.body, request.timeoutTimestamp, request.gaslimit);
+        bytes memory input = abi.encode(request.dest, request.to, request.body, request.timeout, request.gaslimit);
 
         (bool ok, bytes memory out) = address(POST_REQUEST_DISPATCHER).staticcall(input);
 
@@ -30,8 +29,7 @@ library SubstrateHost {
      * @param request - get request
      */
     function dispatch(DispatchGet memory request) internal view {
-        bytes memory input =
-            abi.encode(request.dest, request.height, request.keys, request.timeoutTimestamp, request.gaslimit);
+        bytes memory input = abi.encode(request.dest, request.height, request.keys, request.timeout, request.gaslimit);
 
         (bool ok, bytes memory out) = address(GET_REQUEST_DISPATCHER).staticcall(input);
 

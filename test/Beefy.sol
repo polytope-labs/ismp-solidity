@@ -1,19 +1,24 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
-
-import "../src/consensus/Beefy.sol";
+import "../src/beefy/BeefyV1.sol";
 
 contract BeefyConsensusClientTest is Test {
     // needs a test method so that forge can detect it
     function testConsensusClient() public {}
 
-    function VerifyV1(BeefyConsensusState memory trustedConsensusState, BeefyConsensusProof memory proof)
+    BeefyV1 internal beefy;
+
+    function setUp() public virtual {
+        beefy = new BeefyV1();
+    }
+
+    function VerifyV1(bytes memory trustedConsensusState, bytes memory proof)
         public
-        returns (BeefyConsensusState memory, IntermediateState[] memory)
+        returns (bytes memory, IntermediateState[] memory)
     {
-        return BeefyConsensusClient.verifyConsensus(trustedConsensusState, proof);
+        return beefy.verifyConsensus(trustedConsensusState, proof);
     }
 
     function DecodeHeader(bytes memory encoded) public pure returns (Header memory) {

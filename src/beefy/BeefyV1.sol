@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.17;
 
-//import "../ISMP.sol";
 import "./Codec.sol";
-import "./Schema.sol";
+import "../interfaces/StateMachine.sol";
+import "../interfaces/IConsensusClient.sol";
 
 import "solidity-merkle-trees/MerkleMultiProof.sol";
 import "solidity-merkle-trees/MerkleMountainRange.sol";
@@ -11,15 +11,100 @@ import "solidity-merkle-trees/MerklePatricia.sol";
 import "solidity-merkle-trees/trie/substrate/ScaleCodec.sol";
 import "solidity-merkle-trees/trie/Bytes.sol";
 import "openzeppelin/utils/cryptography/ECDSA.sol";
-import "openzeppelin/utils/cryptography/MerkleProof.sol";
-import "openzeppelin/utils/Strings.sol";
-import "../interfaces/IConsensusClient.sol";
+
+struct BeefyConsensusState {
+    /// block number for the latest mmr_root_hash
+    uint256 latestHeight;
+    /// Block number that the beefy protocol was activated on the relay chain.
+    /// This should be the first block in the merkle-mountain-range tree.
+    uint256 beefyActivationBlock;
+    /// authorities for the current round
+    AuthoritySetCommitment currentAuthoritySet;
+    /// authorities for the next round
+    AuthoritySetCommitment nextAuthoritySet;
+}
+
+struct AuthoritySetCommitment {
+    /// Id of the set.
+    uint256 id;
+    /// Number of validators in the set.
+    uint256 len;
+    /// Merkle Root Hash built from BEEFY AuthorityIds.
+    bytes32 root;
+}
+
+struct Payload {
+    bytes2 id;
+    bytes data;
+}
+
+struct Commitment {
+    Payload[] payload;
+    uint256 blockNumber;
+    uint256 validatorSetId;
+}
+
+struct Vote {
+    bytes signature;
+    uint256 authorityIndex;
+}
+
+struct SignedCommitment {
+    Commitment commitment;
+    Vote[] votes;
+}
+
+struct BeefyMmrLeaf {
+    uint256 version;
+    uint256 parentNumber;
+    bytes32 parentHash;
+    AuthoritySetCommitment nextAuthoritySet;
+    bytes32 extra;
+    uint256 kIndex;
+}
+
+struct PartialBeefyMmrLeaf {
+    uint256 version;
+    uint256 parentNumber;
+    bytes32 parentHash;
+    AuthoritySetCommitment nextAuthoritySet;
+}
+
+struct RelayChainProof {
+    /// Signed commitment
+    SignedCommitment signedCommitment;
+    /// Latest leaf added to mmr
+    BeefyMmrLeaf latestMmrLeaf;
+    /// Proof for the latest mmr leaf
+    bytes32[] mmrProof;
+    /// Proof for authorities in current/next session
+    Node[][] proof;
+}
+
+struct Parachain {
+    /// k-index for latestHeadsRoot
+    uint256 index;
+    /// Parachain Id
+    uint256 id;
+    /// SCALE encoded header
+    bytes header;
+}
+
+struct ParachainProof {
+    Parachain[] parachains;
+    Node[][] proof;
+}
+
+struct BeefyConsensusProof {
+    RelayChainProof relay;
+    ParachainProof parachain;
+}
 
 struct ConsensusMessage {
     BeefyConsensusProof proof;
 }
 
-library BeefyConsensusClient {
+contract BeefyV1 is IConsensusClient {
     /// Slot duration in milliseconds
     uint256 public constant SLOT_DURATION = 12000;
     /// The PayloadId for the mmr root.
@@ -29,22 +114,34 @@ library BeefyConsensusClient {
     /// ConsensusID for aura
     bytes4 public constant AURA_CONSENSUS_ID = bytes4("aura");
 
+    function verifyConsensus(bytes memory encodedState, bytes memory encodedProof)
+        external
+        returns (bytes memory, IntermediateState[] memory)
+    {
+        BeefyConsensusState memory consensusState = abi.decode(encodedState, (BeefyConsensusState));
+        (RelayChainProof memory relay, ParachainProof memory parachain) =
+            abi.decode(encodedProof, (RelayChainProof, ParachainProof));
+
+        (BeefyConsensusState memory newState, IntermediateState[] memory intermediates) =
+            this.verifyConsensus(consensusState, BeefyConsensusProof(relay, parachain));
+
+        return (abi.encode(newState), intermediates);
+    }
+
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.
     function verifyConsensus(BeefyConsensusState memory trustedState, BeefyConsensusProof memory proof)
-        internal
+        external
         pure
         returns (BeefyConsensusState memory, IntermediateState[] memory)
     {
-        require(trustedState.frozenHeight == 0, "Consensus client is frozen");
-
         // verify mmr root proofs
-        trustedState = verifyMmrUpdateProof(trustedState, proof.relay);
+        (BeefyConsensusState memory state, bytes32 headsRoot) = verifyMmrUpdateProof(trustedState, proof.relay);
 
         // verify intermediate state commitment proofs
-        IntermediateState[] memory intermediate = verifyParachainHeaderProof(trustedState, proof.parachain);
+        IntermediateState[] memory intermediate = verifyParachainHeaderProof(headsRoot, proof.parachain);
 
-        return (trustedState, intermediate);
+        return (state, intermediate);
     }
 
     /// Verifies a new Mmmr root update, the relay chain accumulates its blocks into a merkle mountain range tree
@@ -52,9 +149,9 @@ library BeefyConsensusClient {
     /// the relay chain authority set and we can verify the membership of the authorities who signed this new root
     /// using a merkle multi proof and a merkle commitment to the total authorities.
     function verifyMmrUpdateProof(BeefyConsensusState memory trustedState, RelayChainProof memory relayProof)
-        internal
+        private
         pure
-        returns (BeefyConsensusState memory)
+        returns (BeefyConsensusState memory, bytes32)
     {
         uint256 signatures_length = relayProof.signedCommitment.votes.length;
         uint256 latestHeight = relayProof.signedCommitment.commitment.blockNumber;
@@ -127,30 +224,29 @@ library BeefyConsensusClient {
         }
 
         trustedState.latestHeight = latestHeight;
-        trustedState.latestHeadsRoot = relayProof.latestMmrLeaf.extra;
 
-        return trustedState;
+        return (trustedState, relayProof.latestMmrLeaf.extra);
     }
 
     /// Stack too deep, sigh solidity
     function verifyMmrLeaf(BeefyConsensusState memory trustedState, RelayChainProof memory relay, bytes32 mmrRoot)
-        internal
+        private
         pure
     {
-        bytes32 leafHash = keccak256(Codec.Encode(relay.latestMmrLeaf));
-        uint256 leafIndex = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber);
-        uint256 mmrSize = MerkleMountainRange.leafIndexToMmrSize(uint64(leafIndex));
-        uint256 leafPos = MerkleMountainRange.leafIndexToPos(uint64(leafIndex));
+        bytes32 hash = keccak256(Codec.Encode(relay.latestMmrLeaf));
+        uint256 index = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber);
+        uint256 mmrSize = MerkleMountainRange.leafIndexToMmrSize(uint64(index));
+        uint256 pos = MerkleMountainRange.leafIndexToPos(uint64(index));
 
         MmrLeaf[] memory leaves = new MmrLeaf[](1);
-        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, leafPos, leafHash);
+        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, pos, hash);
 
         require(MerkleMountainRange.VerifyProof(mmrRoot, relay.mmrProof, leaves, mmrSize), "Invalid Mmr Proof");
     }
 
     /// Verifies that some parachain header has been finalized, given the current trusted consensus state.
-    function verifyParachainHeaderProof(BeefyConsensusState memory trustedState, ParachainProof memory proof)
-        internal
+    function verifyParachainHeaderProof(bytes32 headsRoot, ParachainProof memory proof)
+        private
         pure
         returns (IntermediateState[] memory)
     {
@@ -187,16 +283,13 @@ library BeefyConsensusClient {
                 IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
         }
 
-        require(
-            MerkleMultiProof.VerifyProofSorted(trustedState.latestHeadsRoot, proof.proof, leaves),
-            "Invalid parachains heads proof"
-        );
+        require(MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves), "Invalid parachains heads proof");
 
         return intermediates;
     }
 
     /// Calculates the mmr leaf index for a block whose parent number is given.
-    function leafIndex(uint256 activationBlock, uint256 parentNumber) internal pure returns (uint256) {
+    function leafIndex(uint256 activationBlock, uint256 parentNumber) private pure returns (uint256) {
         if (activationBlock == 0) {
             return parentNumber;
         } else {
@@ -205,7 +298,7 @@ library BeefyConsensusClient {
     }
 
     /// Check for supermajority participation.
-    function checkParticipationThreshold(uint256 len, uint256 total) internal pure returns (bool) {
+    function checkParticipationThreshold(uint256 len, uint256 total) private pure returns (bool) {
         return len >= ((2 * total) / 3) + 1;
     }
 }

@@ -1,9 +1,11 @@
-use crate::{abi, execute, runner};
+#![cfg(test)]
+
+use crate::{abi, abi::local, execute, runner};
 use beefy_primitives::{crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFinalityProof};
 use beefy_prover::Prover;
 use beefy_verifier_primitives::ConsensusState;
 use codec::{Decode, Encode};
-use ethers::abi::{Token, Tokenizable, Uint};
+use ethers::abi::{AbiDecode, AbiEncode, Token, Uint};
 use futures::stream::StreamExt;
 use hex_literal::hex;
 use primitive_types::H256;
@@ -20,9 +22,9 @@ use subxt::{
     utils::{AccountId32, MultiAddress, MultiSignature},
     PolkadotConfig,
 };
-use crate::abi::local;
 
-type Hyperbridge = WithExtrinsicParams<HyperbridgeConfig, PolkadotExtrinsicParams<HyperbridgeConfig>>;
+type Hyperbridge =
+    WithExtrinsicParams<HyperbridgeConfig, PolkadotExtrinsicParams<HyperbridgeConfig>>;
 
 pub struct HyperbridgeConfig {}
 
@@ -37,21 +39,19 @@ impl Hasher for Keccak256 {
 }
 
 impl subxt::Config for HyperbridgeConfig {
-    type Index = u32;
-    type BlockNumber = u32;
     type Hash = H256;
     type AccountId = AccountId32;
     type Address = MultiAddress<Self::AccountId, u32>;
     type Signature = MultiSignature;
     type Hasher = Keccak256;
-    type Header = SubstrateHeader<Self::BlockNumber, Keccak256>;
+    type Header = SubstrateHeader<u32, Keccak256>;
     type ExtrinsicParams = SubstrateExtrinsicParams<Self>;
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
+#[ignore]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
-
     let relay_ws_url = format!(
         "ws://{}:9944",
         std::env::var("RELAY_HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
@@ -73,7 +73,7 @@ async fn beefy_consensus_client_test() {
         .skip_while(|result| {
             futures::future::ready({
                 match result {
-                    Ok(block) => block.number() < 125,
+                    Ok(block) => block.number() < 10,
                     Err(_) => false,
                 }
             })
@@ -87,7 +87,6 @@ async fn beefy_consensus_client_test() {
     let para = subxt::client::OnlineClient::<Hyperbridge>::from_url(para_ws_url).await.unwrap();
     let prover = Prover { relay, para, para_ids: vec![2000] };
     let initial_state = prover.get_initial_consensus_state().await.unwrap();
-    dbg!(&initial_state);
     let mut consensus_state: abi::BeefyConsensusState = initial_state.into();
     let subscription: Subscription<String> = prover
         .relay
@@ -123,30 +122,40 @@ async fn beefy_consensus_client_test() {
         let consensus_proof: abi::BeefyConsensusProof =
             prover.consensus_proof(signed_commitment).await.unwrap().into();
 
-        let update =
-            execute::<_, (abi::BeefyConsensusState, Vec<abi::IntermediateState>)>(
-                &mut runner,
-                "BeefyConsensusClientTest",
-                "VerifyV1",
-                (consensus_state.clone().into_token(), consensus_proof.into_token()),
-            )
-            .unwrap();
-
-        consensus_state = update.0.clone();
-
+        if consensus_proof.relay.signed_commitment.commitment.block_number ==
+            consensus_state.latest_height
         {
-            let debug_consensus_state: ConsensusState = update.0.into();
-            dbg!(&debug_consensus_state);
-            let intermediate: Vec<local::IntermediateState> =
-                update.1.into_iter().map(Into::into).collect();
-            dbg!(&intermediate);
+            continue
         }
 
+        dbg!(&consensus_proof.relay.signed_commitment.commitment);
+
+        let (new_state, intermediates) = execute::<_, (bytes::Bytes, Vec<abi::IntermediateState>)>(
+            &mut runner,
+            "BeefyConsensusClientTest",
+            "VerifyV1",
+            (
+                Token::Bytes(consensus_state.clone().encode()),
+                Token::Bytes(consensus_proof.encode()),
+            ),
+        )
+        .await
+        .unwrap();
+
+        consensus_state = abi::BeefyConsensusState::decode(new_state).unwrap();
+
+        {
+            let debug_consensus_state: ConsensusState = consensus_state.clone().into();
+            dbg!(&debug_consensus_state);
+            let intermediate: Vec<local::IntermediateState> =
+                intermediates.into_iter().map(Into::into).collect();
+            dbg!(&intermediate);
+        }
     }
 }
 
-#[test]
-fn test_decode_encode() {
+#[tokio::test(flavor = "multi_thread")]
+async fn test_decode_encode() {
     let mmr_leaf = hex!("003f1e0000ccaf442e2648d278e87dbca890e532ef9cb7cf2058d023903b49567e2943996f550000000000000006000000a9d36172252f275bc8b7851062dff4a29e018355d8626c941f2ad57dfbabecd008ca13222c83d2a481d7b63c356d95bf9366b2a70e907ca3e38fa52e35731537").to_vec();
     let header = hex!("9a28ac82dd089df2f5215ec55ae8b4933f9d58c8c76bf0c0ca1884f3778af2b7a53ba87a649f925c5093914299f42c78ad997b5f69a2ca5dc9ad3357cd0aeb6fd409566fe009ee37e1bbdc43af58c0be65d195bc3f0a5c98568bb12b709ef0d4f3be0806617572612038b856080000000005617572610101ecb27e1850a572d08ff0f4e94a1a557b0ddd7b12158627e442789802aada1553e65d72ecc3a6c0efb9794fb6c2ebf5878da36d6e5b8295cc0f42810beb64c68a").to_vec();
     let commitment = hex!("046d688088bc15df49c90d1823ac81aa90236815062561ccc4352983576013413e17c25a401e00005400000000000000").to_vec();
@@ -166,6 +175,7 @@ fn test_decode_encode() {
                 "DecodeHeader",
                 (Token::Bytes(header.encode())),
             )
+            .await
             .unwrap();
 
         assert_eq!(&parent_hash, header.parent_hash.as_fixed_bytes());
@@ -190,6 +200,7 @@ fn test_decode_encode() {
             "EncodeCommitment",
             (abi,),
         )
+        .await
         .unwrap();
 
         assert_eq!(encoded, commitment.encode());
@@ -211,6 +222,7 @@ fn test_decode_encode() {
 
         let encoded =
             execute::<_, Vec<u8>>(&mut runner, "BeefyConsensusClientTest", "EncodeLeaf", (abi,))
+                .await
                 .unwrap();
 
         assert_eq!(encoded, mmr_leaf.encode());

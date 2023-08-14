@@ -1,9 +1,11 @@
 use beefy_primitives::mmr::BeefyNextAuthoritySet;
 use beefy_verifier_primitives::{ConsensusMessage, ConsensusState, MmrProof};
-use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos, mmr_position_to_k_index};
+use merkle_mountain_range::{leaf_index_to_mmr_size, leaf_index_to_pos};
+use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
 
-ethers::contract::abigen!(BeefyV1, "../out/abi/BeefyV1.abi",);
+ethers::contract::abigen!(BeefyV1, "../out/BeefyV1.sol/BeefyV1.json",);
+ethers::contract::abigen!(HandlerV1, "../out/HandlerV1.sol/HandlerV1.json",);
 
 impl From<ConsensusMessage> for BeefyConsensusProof {
     fn from(message: ConsensusMessage) -> Self {
@@ -62,11 +64,11 @@ impl From<MmrProof> for RelayChainProof {
                     block_number: value.signed_commitment.commitment.block_number.into(),
                     validator_set_id: value.signed_commitment.commitment.validator_set_id.into(),
                 },
-                signatures: value
+                votes: value
                     .signed_commitment
                     .signatures
                     .into_iter()
-                    .map(|a| Signature {
+                    .map(|a| Vote {
                         signature: a.signature.to_vec().into(),
                         authority_index: a.index.into(),
                     })
@@ -109,9 +111,6 @@ impl From<ConsensusState> for BeefyConsensusState {
     fn from(value: ConsensusState) -> Self {
         BeefyConsensusState {
             latest_height: value.latest_beefy_height.into(),
-            latest_timestamp: Default::default(),
-            frozen_height: Default::default(),
-            latest_heads_root: Default::default(),
             beefy_activation_block: Default::default(),
             current_authority_set: value.current_authorities.into(),
             next_authority_set: value.next_authorities.into(),
@@ -142,8 +141,8 @@ impl From<IntermediateState> for local::IntermediateState {
     fn from(value: IntermediateState) -> Self {
         local::IntermediateState {
             height: local::StateMachineHeight {
-                state_machine_id: value.height.state_machine_id.as_u32(),
-                height: value.height.height.as_u32(),
+                state_machine_id: value.state_machine_id.as_u32(),
+                height: value.height.as_u32(),
             },
             commitment: local::StateCommitment {
                 timestamp: value.commitment.timestamp.as_u64(),

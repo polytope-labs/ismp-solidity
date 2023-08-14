@@ -1,22 +1,32 @@
 #![allow(unused_parens)]
 
 pub mod abi;
-mod beefy;
 mod forge;
+mod tests;
 
 pub use crate::forge::{execute, runner};
 pub use ethers::{abi::Token, types::U256, utils::keccak256};
-use merkle_mountain_range::{Error, Merge};
+use ismp_primitives::mmr::{DataOrHash, MmrHasher};
+use merkle_mountain_range::{util::MemMMR, Error, Merge};
 use rs_merkle::Hasher;
 
 #[derive(Clone)]
-struct Keccak256;
+pub struct Keccak256;
 
 impl Hasher for Keccak256 {
     type Hash = [u8; 32];
 
     fn hash(data: &[u8]) -> [u8; 32] {
         keccak256(data)
+    }
+}
+
+impl ismp::util::Keccak256 for Keccak256 {
+    fn keccak256(bytes: &[u8]) -> H256
+    where
+        Self: Sized,
+    {
+        keccak256(bytes).into()
     }
 }
 
@@ -42,3 +52,14 @@ impl From<u32> for NumberHash {
         NumberHash(hash.to_vec())
     }
 }
+
+pub fn unwrap_hash(item: &DataOrHash) -> [u8; 32] {
+    match item {
+        DataOrHash::Hash(h) => (*h).into(),
+        _ => panic!("not a hash"),
+    }
+}
+
+use primitive_types::H256;
+
+pub type Mmr = MemMMR<DataOrHash, MmrHasher<Keccak256>>;

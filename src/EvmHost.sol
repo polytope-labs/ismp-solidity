@@ -1,29 +1,48 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/MerkleMountainRange.sol";
 import "openzeppelin/utils/introspection/IERC165.sol";
 import "openzeppelin/utils/Context.sol";
 import "openzeppelin/utils/math/Math.sol";
 
-import "./consensus/Schema.sol";
-import "./consensus/Beefy.sol";
-import "./interfaces/IISMPModule.sol";
+import "./interfaces/IIsmpModule.sol";
 import "./interfaces/IIsmpHost.sol";
 import "./interfaces/IHandler.sol";
 
-/// ISMP core protocol
-abstract contract IsmpHost is IIsmpHost, Context {
+struct HostParams {
+    // default timeout in seconds for requests.
+    uint256 defaultTimeout;
+    // timestamp for when the consensus was most recently updated
+    uint256 lastUpdated;
+    // unstaking period
+    uint256 unStakingPeriod;
+    // minimum challenge period in seconds;
+    uint256 challengePeriod;
+    // consensus client contract
+    address consensusClient;
+    // admin account, this only has the rights to freeze, or unfreeze the bridge
+    address admin;
+    // Ismp request/response handler
+    address handler;
+    // the authorized cross-chain governor contract
+    address crosschainGovernor;
+    // current verified state of the consensus client;
+    bytes consensusState;
+}
+
+/// Ismp implementation for Evm hosts
+abstract contract EvmHost is IIsmpHost, Context {
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
+
+    // commitment of all outgoing responses
+    mapping(bytes32 => bool) private _responseCommitments;
 
     // commitment of all incoming requests
     mapping(bytes32 => bool) private _requestReceipts;
 
     // commitment of all incoming responses
-    mapping(bytes32 => bool) private _responseCommitments;
-
-    // commitment of all outgoing responses
     mapping(bytes32 => bool) private _responseReceipts;
 
     // (stateMachineId => (blockHeight => StateCommitment))
@@ -32,32 +51,14 @@ abstract contract IsmpHost is IIsmpHost, Context {
     // (stateMachineId => (blockHeight => timestamp))
     mapping(uint256 => mapping(uint256 => uint256)) private _stateCommitmentsUpdateTime;
 
-    // minimum challenge period in seconds;
-    uint256 private _CHALLENGE_PERIOD = 12000;
-
-    // todo: Default timeout in seconds for requests.
-    uint256 private _DEFAULT_TIMEOUT = 12000;
-
-    // consensus client address and metadata,
-    Consensus private _consensus;
+    // Parameters for the host
+    HostParams private _hostParams;
 
     // monotonically increasing nonce for outgoing requests
     uint256 private _nonce;
 
-    // admin account, this only has the rights to freeze, or unfreeze the bridge
-    address private _admin;
-
-    // emergency shutdown button
+    // emergency shutdown button, only the admin can do this
     bool private _frozen;
-
-    // unstaking period
-    uint256 private _unStakingPeriod;
-
-    // host handler
-    IHandler private _handler;
-
-    // governance contracts
-    address public governance;
 
     event PostResponseEvent(
         bytes source,
@@ -77,28 +78,30 @@ abstract contract IsmpHost is IIsmpHost, Context {
 
     event GetRequestEvent(bytes source, bytes dest, bytes from, uint256 indexed nonce, uint256 timeoutTimestamp);
 
+    modifier onlyAdmin() {
+        require(_msgSender() == _hostParams.admin, "EvmHost: Only admin");
+        _;
+    }
+
     modifier onlyHandler() {
-        require(_msgSender() == address(_handler), "ISMP_HOST: Only handler can call");
+        require(_msgSender() == address(_hostParams.handler), "EvmHost: Only handler");
         _;
     }
 
     modifier onlyGovernance() {
-        require(_msgSender() == governance, "ISMP_HOST: Only governance contract can call");
+        require(_msgSender() == _hostParams.crosschainGovernor, "EvmHost: Only governor contract");
         _;
     }
 
-    constructor(address adminAccount, IHandler handler, Consensus memory initial, address _governance) {
-        _admin = adminAccount;
-        _consensus = initial;
-        _handler = handler;
-        governance = _governance;
+    constructor(HostParams memory params) {
+        _hostParams = params;
     }
 
     /**
      * @return the host admin
      */
-    function admin() external returns (address) {
-        return _admin;
+    function admin() external view returns (address) {
+        return _hostParams.admin;
     }
 
     /**
@@ -109,7 +112,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @return the host timestamp
      */
-    function hostTimestamp() public view returns (uint256) {
+    function timestamp() public view returns (uint256) {
         return block.timestamp;
     }
 
@@ -124,7 +127,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param height - state machine height
      * @return the state commitment at `height`
      */
-    function stateMachineCommitment(StateMachineHeight memory height) external returns (StateCommitment memory) {
+    function stateMachineCommitment(StateMachineHeight memory height) external view returns (StateCommitment memory) {
         return _stateCommitments[height.stateMachineId][height.height];
     }
 
@@ -132,7 +135,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param height - state machine height
      * @return the state machine update time at `height`
      */
-    function stateMachineUpdateTime(StateMachineHeight memory height) external returns (uint256) {
+    function stateMachineCommitmentUpdateTime(StateMachineHeight memory height) external view returns (uint256) {
         return _stateCommitmentsUpdateTime[height.stateMachineId][height.height];
     }
 
@@ -140,29 +143,29 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @dev Should return a handle to the consensus client based on the id
      * @return the consensus client contract
      */
-    function consensusClient() external returns (address) {
-        return _consensus.client;
+    function consensusClient() external view returns (address) {
+        return _hostParams.consensusClient;
     }
 
     /**
      * @return the last updated time of the consensus client
      */
-    function consensusUpdateTime() external returns (uint256) {
-        return _consensus.lastUpdated;
+    function consensusUpdateTime() external view returns (uint256) {
+        return _hostParams.lastUpdated;
     }
 
     /**
      * @return the state of the consensus client
      */
-    function consensusState() external returns (bytes memory) {
-        return _consensus.state;
+    function consensusState() external view returns (bytes memory) {
+        return _hostParams.consensusState;
     }
 
     /**
      * @param commitment - commitment to the request
      * @return existence status of an incoming request commitment
      */
-    function requestReceipts(bytes32 commitment) external returns (bool) {
+    function requestReceipts(bytes32 commitment) external view returns (bool) {
         return _requestReceipts[commitment];
     }
 
@@ -170,7 +173,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param commitment - commitment to the response
      * @return existence status of an incoming response commitment
      */
-    function responseReceipts(bytes32 commitment) external returns (bool) {
+    function responseReceipts(bytes32 commitment) external view returns (bool) {
         return _responseReceipts[commitment];
     }
 
@@ -178,7 +181,7 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (bool) {
+    function requestCommitments(bytes32 commitment) external view returns (bool) {
         return _requestCommitments[commitment];
     }
 
@@ -186,15 +189,15 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param commitment - commitment to the response
      * @return existence status of an outgoing response commitment
      */
-    function responseCommitments(bytes32 commitment) external returns (bool) {
+    function responseCommitments(bytes32 commitment) external view returns (bool) {
         return _responseCommitments[commitment];
     }
 
     /**
      * @return the challenge period
      */
-    function challengePeriod() external returns (uint256) {
-        return _CHALLENGE_PERIOD;
+    function challengePeriod() external view returns (uint256) {
+        return _hostParams.challengePeriod;
     }
 
     /**
@@ -202,26 +205,27 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param params new bridge params
      */
     function setBridgeParams(BridgeParams memory params) external onlyGovernance {
-        _admin = params.admin;
-        _CHALLENGE_PERIOD = params.challengePeriod;
-        _consensus.client = params.consensus;
-        _DEFAULT_TIMEOUT = params.defaultTimeout;
-        _unStakingPeriod = params.unstakingPeriod;
-        _handler = IHandler(params.handler);
+        _hostParams.challengePeriod = params.challengePeriod;
+        _hostParams.consensusClient = params.consensus;
+        _hostParams.unStakingPeriod = params.unstakingPeriod;
+
+        _hostParams.admin = params.admin;
+        _hostParams.defaultTimeout = params.defaultTimeout;
+        _hostParams.handler = params.handler;
     }
 
     /**
      * @dev Store an encoded consensus state
      */
     function storeConsensusState(bytes memory state) external onlyHandler {
-        _consensus.state = state;
+        _hostParams.consensusState = state;
     }
 
     /**
      * @dev Store the timestamp when the consensus client was updated
      */
-    function storeConsensusUpdateTime(uint256 timestamp) external onlyHandler {
-        _consensus.lastUpdated = timestamp;
+    function storeConsensusUpdateTime(uint256 time) external onlyHandler {
+        _hostParams.lastUpdated = time;
     }
 
     /**
@@ -237,11 +241,11 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @dev Store the timestamp when the state machine was updated
      */
-    function storeStateMachineCommitmentUpdateTime(StateMachineHeight memory height, uint256 timestamp)
+    function storeStateMachineCommitmentUpdateTime(StateMachineHeight memory height, uint256 time)
         external
         onlyHandler
     {
-        _stateCommitmentsUpdateTime[height.stateMachineId][height.height] = timestamp;
+        _stateCommitmentsUpdateTime[height.stateMachineId][height.height] = time;
     }
 
     /**
@@ -255,8 +259,8 @@ abstract contract IsmpHost is IIsmpHost, Context {
     /**
      * @return the unstaking period
      */
-    function unStakingPeriod() public returns (uint256) {
-        return _unStakingPeriod;
+    function unStakingPeriod() public view returns (uint256) {
+        return _hostParams.unStakingPeriod;
     }
 
     /**
@@ -265,7 +269,6 @@ abstract contract IsmpHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostRequest memory request) external onlyHandler {
         address destination = _bytesToAddress(request.to);
-        require(IERC165(destination).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(destination).onAccept(request);
 
         bytes32 commitment = Message.hash(request);
@@ -278,7 +281,6 @@ abstract contract IsmpHost is IIsmpHost, Context {
      */
     function dispatchIncoming(PostResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onPostResponse(response);
 
         bytes32 commitment = Message.hash(response);
@@ -291,23 +293,23 @@ abstract contract IsmpHost is IIsmpHost, Context {
      */
     function dispatchIncoming(GetResponse memory response) external onlyHandler {
         address origin = _bytesToAddress(response.request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onGetResponse(response);
-        // todo: store response commitment
+
+        bytes32 commitment = Message.hash(response);
+        _responseReceipts[commitment] = true;
     }
 
     /**
      * @dev Dispatch an incoming get timeout to source module
-     * @param timeout - get timeout
+     * @param request - get request
      */
     function dispatchIncoming(GetRequest memory request) external onlyHandler {
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onGetTimeout(request);
 
         // Delete Commitment
         bytes32 commitment = Message.hash(request);
-        delete _responseReceipts[commitment];
+        delete _requestCommitments[commitment];
     }
 
     /**
@@ -315,14 +317,13 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param timeout - post timeout
      */
     function dispatchIncoming(PostTimeout memory timeout) external onlyHandler {
-        PostRequest request = timeout.request;
+        PostRequest memory request = timeout.request;
         address origin = _bytesToAddress(request.from);
-        require(IERC165(origin).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: Invalid module");
         IIsmpModule(origin).onPostTimeout(request);
 
         // Delete Commitment
         bytes32 commitment = Message.hash(request);
-        delete _responseReceipts[commitment];
+        delete _requestCommitments[commitment];
     }
 
     /**
@@ -330,24 +331,31 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param request - post dispatch request
      */
     function dispatch(DispatchPost memory request) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
-        PostRequest memory request = PostRequest(
-            host(), request.dest, _nextNonce(), request.from, request.to, timeout, request.body, request.gaslimit
-        );
+        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
+        PostRequest memory _request = PostRequest({
+            source: host(),
+            dest: request.dest,
+            nonce: uint64(_nextNonce()),
+            from: abi.encodePacked(_msgSender()),
+            to: request.to,
+            timeoutTimestamp: timeout,
+            body: request.body,
+            gaslimit: request.gaslimit
+        });
+
         // make the commitment
-        bytes32 commitment = Message.hash(request);
+        bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
 
         emit PostRequestEvent(
-            request.source,
-            request.dest,
-            request.from,
-            abi.encodePacked(request.to),
-            request.nonce,
-            request.timeoutTimestamp,
-            request.body
-        );
+            _request.source,
+            _request.dest,
+            _request.from,
+            abi.encodePacked(_request.to),
+            _request.nonce,
+            _request.timeoutTimestamp,
+            _request.body
+            );
     }
 
     /**
@@ -355,17 +363,23 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param request - get dispatch request
      */
     function dispatch(DispatchGet memory request) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "Cannot dispatch request");
-        uint256 timeout = Math.max(_DEFAULT_TIMEOUT, request.timeoutTimestamp);
-        GetRequest memory request = GetRequest(
-            host(), request.dest, _nextNonce(), request.from, timeout, request.keys, request.height, request.gaslimit
-        );
+        uint64 timeout = uint64(this.timestamp()) + uint64(Math.max(_hostParams.defaultTimeout, request.timeout));
+        GetRequest memory _request = GetRequest({
+            source: host(),
+            dest: request.dest,
+            nonce: uint64(_nextNonce()),
+            from: abi.encodePacked(_msgSender()),
+            timeoutTimestamp: timeout,
+            keys: request.keys,
+            height: request.height,
+            gaslimit: request.gaslimit
+        });
 
         // make the commitment
-        bytes32 commitment = Message.hash(request);
+        bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
 
-        emit GetRequestEvent(request.source, request.dest, request.from, request.nonce, request.timeoutTimestamp);
+        emit GetRequestEvent(_request.source, _request.dest, _request.from, _request.nonce, _request.timeoutTimestamp);
     }
 
     /**
@@ -373,9 +387,8 @@ abstract contract IsmpHost is IIsmpHost, Context {
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external {
-        require(IERC165(_msgSender()).supportsInterface(type(IIsmpModule).interfaceId), "ISMP_HOST: invalid module");
         bytes32 receipt = Message.hash(response.request);
-        require(_requestReceipts[receipt], "ISMP_HOST: unknown request");
+        require(_requestReceipts[receipt], "EvmHost: unknown request");
 
         bytes32 commitment = Message.hash(response);
         _responseCommitments[commitment] = true;
@@ -389,26 +402,28 @@ abstract contract IsmpHost is IIsmpHost, Context {
             response.request.timeoutTimestamp,
             response.request.body,
             response.response
-        );
+            );
     }
 
     /**
      * @dev Get next available nonce for outgoing requests.
      */
     function _nextNonce() private returns (uint256) {
+        uint256 _nonce_copy = _nonce;
+
         unchecked {
             ++_nonce;
         }
 
-        return _nonce;
+        return _nonce_copy;
     }
 
     /**
      * @dev Converts bytes to address.
      * @param _bytes bytes value to be converted
-     * @return returns the address
+     * @return addr returns the address
      */
-    function _bytesToAddress(bytes memory _bytes) private returns (address addr) {
+    function _bytesToAddress(bytes memory _bytes) private pure returns (address addr) {
         require(_bytes.length >= 20, "Invalid address length");
         assembly {
             addr := mload(add(_bytes, 20))

@@ -1,22 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/trie/Bytes.sol";
 
 import "../interfaces/IIsmpModule.sol";
 import "../interfaces/IIsmpHost.sol";
-import "../StateMachine.sol";
+import "../interfaces/StateMachine.sol";
 
 contract CrossChainGovernor is IIsmpModule {
-    address private host;
-    uint256 private paraId;
+    using Bytes for bytes;
+
+    address private _host;
+    uint256 private _paraId;
 
     modifier onlyIsmpHost() {
-        require(msg.sender == host, "CrossChainGovernance: Invalid caller");
+        require(msg.sender == _host, "CrossChainGovernance: Invalid caller");
+        _;
+    }
+
+    constructor(address host, uint256 paraId) {
+        _host = host;
+        _paraId = paraId;
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {
-        require(request.source.equals(StateMachine.polkadot(paraId)), "Unauthorized request");
+        require(request.source.equals(StateMachine.polkadot(_paraId)), "Unauthorized request");
         (
             address admin,
             address consensus,
@@ -29,22 +37,22 @@ contract CrossChainGovernor is IIsmpModule {
         BridgeParams memory params =
             BridgeParams(admin, consensus, handler, challengePeriod, unstakingPeriod, defaultTimeout);
 
-        IIsmpHost(host).setBridgeParams(params);
+        IIsmpHost(_host).setBridgeParams(params);
     }
 
-    function onPostResponse(PostResponse memory response) external {
+    function onPostResponse(PostResponse memory response) external pure {
         revert("Module doesn't emit requests");
     }
 
-    function onGetResponse(GetResponse memory response) external {
+    function onGetResponse(GetResponse memory response) external pure {
         revert("Module doesn't emit requests");
     }
 
-    function onPostTimeout(PostRequest memory request) external {
+    function onPostTimeout(PostRequest memory request) external pure {
         revert("Module doesn't emit requests");
     }
 
-    function onGetTimeout(GetRequest memory request) external {
+    function onGetTimeout(GetRequest memory request) external pure {
         revert("Module doesn't emit requests");
     }
 }

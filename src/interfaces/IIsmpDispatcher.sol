@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/MerklePatricia.sol";
 
@@ -139,8 +139,8 @@ struct DispatchPost {
     bytes to;
     // the request body
     bytes body;
-    // the timestamp at which this request should timeout
-    uint64 timeoutTimestamp;
+    // timeout for this request in seconds
+    uint64 timeout;
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
 }
@@ -153,8 +153,8 @@ struct DispatchGet {
     uint64 height;
     // Storage keys to read
     bytes[] keys;
-    // the timestamp at which this request should timeout
-    uint64 timeoutTimestamp;
+    // timeout for this request in seconds
+    uint64 timeout;
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
 }
@@ -204,11 +204,37 @@ library Message {
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
-        bytes memory keysEncoding = abi.encode(req.keys);
+        bytes memory keysEncoding = bytes("");
+        uint256 len = req.keys.length;
+        for (uint256 i = 0; i < len; i++) {
+            keysEncoding = bytes.concat(keysEncoding, req.keys[i]);
+        }
+
         return keccak256(
             abi.encodePacked(
                 req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding, req.gaslimit
             )
         );
+    }
+
+    function hash(GetResponse memory res) internal pure returns (bytes32) {
+        bytes memory keysEncoding = abi.encode(res.request.keys);
+        bytes memory preimage = abi.encodePacked(
+            res.request.source,
+            res.request.dest,
+            res.request.nonce,
+            res.request.height,
+            res.request.timeoutTimestamp,
+            res.request.from,
+            keysEncoding,
+            res.request.gaslimit
+        );
+        uint256 len = res.values.length;
+        for (uint256 i = 0; i < len; i++) {
+            StorageValue memory entry = res.values[i];
+            preimage = bytes.concat(preimage, abi.encodePacked(entry.key, entry.value));
+        }
+
+        return keccak256(preimage);
     }
 }

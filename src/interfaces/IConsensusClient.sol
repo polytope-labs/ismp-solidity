@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/MerklePatricia.sol";
 
@@ -18,7 +18,7 @@ struct StateCommitment {
 // as some consensus clients may track multiple, concurrent state machines.
 struct StateMachineHeight {
     // the state machine identifier
-    uint256 stateMachineId; // TODO: Subject to change/review
+    uint256 stateMachineId;
     // height of this state machine
     uint256 height;
 }
@@ -32,25 +32,10 @@ struct IntermediateState {
     StateCommitment commitment;
 }
 
-struct Consensus {
-    // consensus client contract
-    address client;
-    // current verified state of the consensus client;
-    bytes state;
-    // timestamp for when the consensus was most recently updated
-    uint256 lastUpdated;
-}
-
 interface IConsensusClient {
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.
     function verifyConsensus(bytes memory trustedState, bytes memory proof)
         external
-        pure
         returns (bytes memory, IntermediateState[] memory);
-
-    function verifyStateProof(bytes32 root, bytes[] memory keys, bytes[] memory proof)
-        external
-        pure
-        returns (StorageValue[] memory);
 }
