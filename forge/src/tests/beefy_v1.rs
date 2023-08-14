@@ -48,7 +48,7 @@ impl subxt::Config for HyperbridgeConfig {
     type ExtrinsicParams = SubstrateExtrinsicParams<Self>;
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 #[ignore]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
@@ -154,7 +154,7 @@ async fn beefy_consensus_client_test() {
     }
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_decode_encode() {
     let mmr_leaf = hex!("003f1e0000ccaf442e2648d278e87dbca890e532ef9cb7cf2058d023903b49567e2943996f550000000000000006000000a9d36172252f275bc8b7851062dff4a29e018355d8626c941f2ad57dfbabecd008ca13222c83d2a481d7b63c356d95bf9366b2a70e907ca3e38fa52e35731537").to_vec();
     let header = hex!("9a28ac82dd089df2f5215ec55ae8b4933f9d58c8c76bf0c0ca1884f3778af2b7a53ba87a649f925c5093914299f42c78ad997b5f69a2ca5dc9ad3357cd0aeb6fd409566fe009ee37e1bbdc43af58c0be65d195bc3f0a5c98568bb12b709ef0d4f3be0806617572612038b856080000000005617572610101ecb27e1850a572d08ff0f4e94a1a557b0ddd7b12158627e442789802aada1553e65d72ecc3a6c0efb9794fb6c2ebf5878da36d6e5b8295cc0f42810beb64c68a").to_vec();

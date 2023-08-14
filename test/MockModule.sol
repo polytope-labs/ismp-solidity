@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 // A Sample ISMP solidity contract for unit tests
 
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "../src/interfaces/IIsmpModule.sol";
 
@@ -64,10 +64,10 @@ contract MockModule is IIsmpModule {
     }
 
     function onGetResponse(GetResponse memory response) public onlyIsmpHost {
-//        console.log("key: ");
-//        console.logBytes(response.values[0].key);
-//        console.log("value: ");
-//        console.logBytes(response.values[0].value);
+        //        console.log("key: ");
+        //        console.logBytes(response.values[0].key);
+        //        console.log("value: ");
+        //        console.logBytes(response.values[0].value);
         emit GetResponseReceived();
     }
 

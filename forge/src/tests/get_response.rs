@@ -96,7 +96,7 @@ fn generate_proof(request: H256, key: Vec<u8>) -> (H256, Vec<Vec<u8>>) {
     (root, proof)
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_post_request_proof() {
     let mut runner = runner();
     let (mut contract, address) = single_runner(&mut runner, "GetResponseTest").await;

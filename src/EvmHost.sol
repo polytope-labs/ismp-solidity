@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/MerkleMountainRange.sol";
 import "openzeppelin/utils/introspection/IERC165.sol";
@@ -355,7 +355,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.nonce,
             _request.timeoutTimestamp,
             _request.body
-        );
+            );
     }
 
     /**
@@ -402,7 +402,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             response.request.timeoutTimestamp,
             response.request.body,
             response.response
-        );
+            );
     }
 
     /**

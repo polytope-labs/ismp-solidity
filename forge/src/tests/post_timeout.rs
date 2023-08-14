@@ -22,7 +22,7 @@ use sp_trie::{HashDBT, LayoutV0, MemoryDB, StorageProof, TrieDBBuilder, EMPTY_PR
 use std::collections::{BTreeMap, HashSet};
 use trie_db::{Recorder, Trie, TrieDBMutBuilder, TrieMut};
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_post_timeout_proof() {
     let mut runner = runner();
     let (mut contract, address) = single_runner(&mut runner, "PostTimeoutTest").await;

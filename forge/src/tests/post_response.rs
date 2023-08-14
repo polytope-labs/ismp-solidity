@@ -18,7 +18,7 @@ use ismp_primitives::mmr::{DataOrHash, Leaf};
 use merkle_mountain_range_labs::mmr_position_to_k_index;
 use primitive_types::H256;
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_post_response_proof() {
     let mut runner = runner();
     let (mut contract, address) = single_runner(&mut runner, "PostResponseTest").await;

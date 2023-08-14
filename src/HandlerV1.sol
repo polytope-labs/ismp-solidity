@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "solidity-merkle-trees/MerkleMountainRange.sol";
 import "solidity-merkle-trees/MerklePatricia.sol";
