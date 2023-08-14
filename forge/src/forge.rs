@@ -89,22 +89,6 @@ fn manifest_root() -> PathBuf {
 }
 
 /// Builds a non-tracing runner
-#[cfg(target_os = "macos")]
-fn runner_with_config(mut config: Config) -> MultiContractRunner {
-    use foundry_evm::executor::SpecId;
-
-    config.allow_paths.push(manifest_root());
-
-    base_runner()
-        .with_cheats_config(CheatsConfig::new(&config, &EVM_OPTS))
-        .evm_spec(SpecId::SHANGHAI)
-        .sender(config.sender)
-        .build(&PROJECT.paths.root, (*COMPILED).clone(), EVM_OPTS.local_evm_env(), EVM_OPTS.clone())
-        .unwrap()
-}
-
-/// Builds a non-tracing runner
-#[cfg(not(target_os = "macos"))]
 fn runner_with_config(mut config: Config) -> MultiContractRunner {
     use foundry_evm::executor::SpecId;
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 // A Sample ISMP solidity contract for unit tests
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.17;
 
 import "../src/interfaces/IIsmpModule.sol";
 
