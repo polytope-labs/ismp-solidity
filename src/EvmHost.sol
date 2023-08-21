@@ -27,6 +27,8 @@ struct HostParams {
     address handler;
     // the authorized cross-chain governor contract
     address crosschainGovernor;
+    // parachain id
+    uint256 para_id;
     // current verified state of the consensus client;
     bytes consensusState;
 }
@@ -51,6 +53,8 @@ abstract contract EvmHost is IIsmpHost, Context {
     // (stateMachineId => (blockHeight => timestamp))
     mapping(uint256 => mapping(uint256 => uint256)) private _stateCommitmentsUpdateTime;
 
+    uint256 private _latestStateMachineHeight;
+
     // Parameters for the host
     HostParams private _hostParams;
 
@@ -68,15 +72,31 @@ abstract contract EvmHost is IIsmpHost, Context {
         uint256 indexed nonce,
         uint256 timeoutTimestamp,
         bytes data,
-        // response
+        uint256 gaslimit,
         bytes response
     );
 
     event PostRequestEvent(
-        bytes source, bytes dest, bytes from, bytes to, uint256 indexed nonce, uint256 timeoutTimestamp, bytes data
+        bytes source,
+        bytes dest,
+        bytes from,
+        bytes to,
+        uint256 indexed nonce,
+        uint256 timeoutTimestamp,
+        bytes data,
+        uint256 gaslimit
     );
 
-    event GetRequestEvent(bytes source, bytes dest, bytes from, uint256 indexed nonce, uint256 timeoutTimestamp);
+    event GetRequestEvent(
+        bytes source,
+        bytes dest,
+        bytes from,
+        bytes[] keys,
+        uint256 indexed nonce,
+        uint256 height,
+        uint256 timeoutTimestamp,
+        uint256 gaslimit
+    );
 
     modifier onlyAdmin() {
         require(_msgSender() == _hostParams.admin, "EvmHost: Only admin");
@@ -121,6 +141,13 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function frozen() public view returns (bool) {
         return _frozen;
+    }
+
+    /**
+     * @return the allowed state machine id
+     */
+    function stateMachineId() public view returns (uint256) {
+        return _hostParams.para_id;
     }
 
     /**
@@ -201,6 +228,13 @@ abstract contract EvmHost is IIsmpHost, Context {
     }
 
     /**
+     * @return the latest state machine height
+     */
+    function latestStateMachineHeight() external returns (uint256) {
+        return _latestStateMachineHeight;
+    }
+
+    /**
      * @dev Updates bridge params
      * @param params new bridge params
      */
@@ -226,6 +260,14 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function storeConsensusUpdateTime(uint256 time) external onlyHandler {
         _hostParams.lastUpdated = time;
+    }
+
+    /**
+     * @dev Store the latest state machine height
+     * @param height State Machine Latest Height
+     */
+    function storeLatestStateMachineHeight(uint256 height) external onlyHandler {
+        _latestStateMachineHeight = height;
     }
 
     /**
@@ -354,8 +396,9 @@ abstract contract EvmHost is IIsmpHost, Context {
             abi.encodePacked(_request.to),
             _request.nonce,
             _request.timeoutTimestamp,
-            _request.body
-            );
+            _request.body,
+            _request.gaslimit
+        );
     }
 
     /**
@@ -379,7 +422,16 @@ abstract contract EvmHost is IIsmpHost, Context {
         bytes32 commitment = Message.hash(_request);
         _requestCommitments[commitment] = true;
 
-        emit GetRequestEvent(_request.source, _request.dest, _request.from, _request.nonce, _request.timeoutTimestamp);
+        emit GetRequestEvent(
+            _request.source,
+            _request.dest,
+            _request.from,
+            _request.keys,
+            _request.nonce,
+            request.height,
+            _request.timeoutTimestamp,
+            request.gaslimit
+        );
     }
 
     /**
@@ -401,8 +453,9 @@ abstract contract EvmHost is IIsmpHost, Context {
             response.request.nonce,
             response.request.timeoutTimestamp,
             response.request.body,
+            response.request.gaslimit,
             response.response
-            );
+        );
     }
 
     /**

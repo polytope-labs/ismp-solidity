@@ -35,6 +35,11 @@ interface IIsmpHost is IIsmpDispatcher {
     function frozen() external returns (bool);
 
     /**
+     * @return the allowed state machine id
+     */
+    function stateMachineId() external view returns (uint256);
+
+    /**
      * @param height - state machine height
      * @return the state commitment at `height`
      */
@@ -56,6 +61,11 @@ interface IIsmpHost is IIsmpDispatcher {
      * @return the last updated time of the consensus client
      */
     function consensusUpdateTime() external returns (uint256);
+
+    /**
+     * @return the latest state machine height
+     */
+    function latestStateMachineHeight() external returns (uint256);
 
     /**
      * @return the state of the consensus client
@@ -113,6 +123,12 @@ interface IIsmpHost is IIsmpDispatcher {
      * @param timestamp - new timestamp
      */
     function storeConsensusUpdateTime(uint256 timestamp) external;
+
+    /**
+     * @dev Store the latest state machine height
+     * @param height State Machine Height
+     */
+    function storeLatestStateMachineHeight(uint256 height) external;
 
     /**
      * @dev Store the commitment at `state height`

@@ -21,6 +21,8 @@ contract HandlerV1 is IHandler, Context {
     bytes private constant REQUEST_COMMITMENT_STORAGE_PREFIX =
         hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
 
+    event StateMachineUpdated(uint256 stateMachineId, uint256 height);
+
     /**
      * @dev Handle incoming consensus messages
      * @param host - Ismp host
@@ -44,13 +46,27 @@ contract HandlerV1 is IHandler, Context {
         host.storeConsensusUpdateTime(host.timestamp());
 
         uint256 commitmentsLen = intermediates.length;
+        uint256 latestHeight = host.latestStateMachineHeight();
+        uint256 stateMachineId = host.stateMachineId();
         for (uint256 i = 0; i < commitmentsLen; i++) {
             IntermediateState memory intermediate = intermediates[i];
+            if (intermediate.stateMachineId != stateMachineId) {
+                continue;
+            }
             StateMachineHeight memory stateMachineHeight =
                 StateMachineHeight({stateMachineId: intermediate.stateMachineId, height: intermediate.height});
             host.storeStateMachineCommitment(stateMachineHeight, intermediate.commitment);
             host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.timestamp());
+            if (stateMachineHeight.height > latestHeight) {
+                latestHeight = stateMachineHeight.height;
+            }
+            emit StateMachineUpdated({
+                stateMachineId: stateMachineHeight.stateMachineId,
+                height: stateMachineHeight.height
+            });
         }
+
+        host.storeLatestStateMachineHeight(latestHeight);
     }
 
     /**
