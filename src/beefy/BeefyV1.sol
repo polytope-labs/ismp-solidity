@@ -91,7 +91,7 @@ struct Parachain {
 }
 
 struct ParachainProof {
-    Parachain[] parachains;
+    Parachain parachain;
     Node[][] proof;
 }
 
@@ -114,32 +114,38 @@ contract BeefyV1 is IConsensusClient {
     /// ConsensusID for aura
     bytes4 public constant AURA_CONSENSUS_ID = bytes4("aura");
 
+    uint256 private _paraId;
+
+    constructor(uint256 paraId) {
+        _paraId = paraId;
+    }
+
     function verifyConsensus(bytes memory encodedState, bytes memory encodedProof)
         external
-        returns (bytes memory, IntermediateState[] memory)
+        returns (bytes memory, IntermediateState memory)
     {
         BeefyConsensusState memory consensusState = abi.decode(encodedState, (BeefyConsensusState));
         (RelayChainProof memory relay, ParachainProof memory parachain) =
             abi.decode(encodedProof, (RelayChainProof, ParachainProof));
 
-        (BeefyConsensusState memory newState, IntermediateState[] memory intermediates) =
+        (BeefyConsensusState memory newState, IntermediateState memory intermediate) =
             this.verifyConsensus(consensusState, BeefyConsensusProof(relay, parachain));
 
-        return (abi.encode(newState), intermediates);
+        return (abi.encode(newState), intermediate);
     }
 
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.
     function verifyConsensus(BeefyConsensusState memory trustedState, BeefyConsensusProof memory proof)
         external
-        pure
-        returns (BeefyConsensusState memory, IntermediateState[] memory)
+        view
+        returns (BeefyConsensusState memory, IntermediateState memory)
     {
         // verify mmr root proofs
         (BeefyConsensusState memory state, bytes32 headsRoot) = verifyMmrUpdateProof(trustedState, proof.relay);
 
         // verify intermediate state commitment proofs
-        IntermediateState[] memory intermediate = verifyParachainHeaderProof(headsRoot, proof.parachain);
+        IntermediateState memory intermediate = verifyParachainHeaderProof(headsRoot, proof.parachain);
 
         return (state, intermediate);
     }
@@ -247,45 +253,44 @@ contract BeefyV1 is IConsensusClient {
     /// Verifies that some parachain header has been finalized, given the current trusted consensus state.
     function verifyParachainHeaderProof(bytes32 headsRoot, ParachainProof memory proof)
         private
-        pure
-        returns (IntermediateState[] memory)
+        view
+        returns (IntermediateState memory)
     {
-        uint256 headerLen = proof.parachains.length;
-        IntermediateState[] memory intermediates = new IntermediateState[](headerLen);
-        Node[] memory leaves = new Node[](headerLen);
-
-        for (uint256 i = 0; i < headerLen; i++) {
-            Parachain memory para = proof.parachains[i];
-            Header memory header = Codec.DecodeHeader(para.header);
-            require(header.number != 0, "Genesis block should not be included");
-            // extract verified metadata from header
-            bytes32 commitment;
-            uint256 timestamp;
-            for (uint256 j = 0; j < header.digests.length; j++) {
-                if (header.digests[j].isConsensus && header.digests[j].consensus.consensusId == ISMP_CONSENSUS_ID) {
-                    commitment = Bytes.toBytes32(header.digests[j].consensus.data);
-                }
-
-                if (header.digests[j].isPreRuntime && header.digests[j].preruntime.consensusId == AURA_CONSENSUS_ID) {
-                    uint256 slot = ScaleCodec.decodeUint256(header.digests[j].preruntime.data);
-                    timestamp = slot * SLOT_DURATION;
-                }
-            }
-            // require(commitment != bytes32(0), "Request commitment not found!");
-            require(timestamp != 0, "Request commitment not found!");
-
-            leaves[i] = Node(
-                para.index,
-                keccak256(bytes.concat(ScaleCodec.encode32(uint32(para.id)), ScaleCodec.encodeBytes(para.header)))
-            );
-
-            intermediates[i] =
-                IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
+        Node[] memory leaves = new Node[](1);
+        Parachain memory para = proof.parachain;
+        if (para.id != _paraId) {
+            revert("Unknown paraId");
         }
+
+        Header memory header = Codec.DecodeHeader(para.header);
+        require(header.number != 0, "Genesis block should not be included");
+        // extract verified metadata from header
+        bytes32 commitment;
+        uint256 timestamp;
+        for (uint256 j = 0; j < header.digests.length; j++) {
+            if (header.digests[j].isConsensus && header.digests[j].consensus.consensusId == ISMP_CONSENSUS_ID) {
+                commitment = Bytes.toBytes32(header.digests[j].consensus.data);
+            }
+
+            if (header.digests[j].isPreRuntime && header.digests[j].preruntime.consensusId == AURA_CONSENSUS_ID) {
+                uint256 slot = ScaleCodec.decodeUint256(header.digests[j].preruntime.data);
+                timestamp = slot * SLOT_DURATION;
+            }
+        }
+        // require(commitment != bytes32(0), "Request commitment not found!");
+        require(timestamp != 0, "Request commitment not found!");
+
+        leaves[0] = Node(
+            para.index,
+            keccak256(bytes.concat(ScaleCodec.encode32(uint32(para.id)), ScaleCodec.encodeBytes(para.header)))
+        );
+
+        IntermediateState memory intermediate =
+            IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
 
         require(MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves), "Invalid parachains heads proof");
 
-        return intermediates;
+        return intermediate;
     }
 
     /// Calculates the mmr leaf index for a block whose parent number is given.

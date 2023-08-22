@@ -35,11 +35,6 @@ interface IIsmpHost is IIsmpDispatcher {
     function frozen() external returns (bool);
 
     /**
-     * @return the allowed state machine id
-     */
-    function stateMachineId() external view returns (uint256);
-
-    /**
      * @param height - state machine height
      * @return the state commitment at `height`
      */

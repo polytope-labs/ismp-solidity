@@ -40,33 +40,22 @@ contract HandlerV1 is IHandler, Context {
             "IHandler: still in challenge period"
         );
 
-        (bytes memory verifiedState, IntermediateState[] memory intermediates) =
+        (bytes memory verifiedState, IntermediateState memory intermediate) =
             IConsensusClient(host.consensusClient()).verifyConsensus(host.consensusState(), proof);
         host.storeConsensusState(verifiedState);
         host.storeConsensusUpdateTime(host.timestamp());
 
-        uint256 commitmentsLen = intermediates.length;
-        uint256 latestHeight = host.latestStateMachineHeight();
-        uint256 stateMachineId = host.stateMachineId();
-        for (uint256 i = 0; i < commitmentsLen; i++) {
-            IntermediateState memory intermediate = intermediates[i];
-            if (intermediate.stateMachineId != stateMachineId) {
-                continue;
-            }
+        if (intermediate.height > host.latestStateMachineHeight()) {
             StateMachineHeight memory stateMachineHeight =
                 StateMachineHeight({stateMachineId: intermediate.stateMachineId, height: intermediate.height});
             host.storeStateMachineCommitment(stateMachineHeight, intermediate.commitment);
             host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.timestamp());
-            if (stateMachineHeight.height > latestHeight) {
-                latestHeight = stateMachineHeight.height;
-            }
+            host.storeLatestStateMachineHeight(stateMachineHeight.height);
             emit StateMachineUpdated({
                 stateMachineId: stateMachineHeight.stateMachineId,
                 height: stateMachineHeight.height
             });
         }
-
-        host.storeLatestStateMachineHeight(latestHeight);
     }
 
     /**

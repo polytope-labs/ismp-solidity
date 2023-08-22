@@ -33,7 +33,6 @@ contract PostRequestTest is Test {
             challengePeriod: 0,
             consensusClient: address(consensusClient),
             lastUpdated: 0,
-            para_id: 2000,
             consensusState: new bytes(0)
         });
         host = new TestHost(params);

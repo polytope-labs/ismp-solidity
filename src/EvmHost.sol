@@ -27,8 +27,6 @@ struct HostParams {
     address handler;
     // the authorized cross-chain governor contract
     address crosschainGovernor;
-    // parachain id
-    uint256 para_id;
     // current verified state of the consensus client;
     bytes consensusState;
 }
@@ -141,13 +139,6 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function frozen() public view returns (bool) {
         return _frozen;
-    }
-
-    /**
-     * @return the allowed state machine id
-     */
-    function stateMachineId() public view returns (uint256) {
-        return _hostParams.para_id;
     }
 
     /**
@@ -398,7 +389,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.timeoutTimestamp,
             _request.body,
             _request.gaslimit
-        );
+            );
     }
 
     /**
@@ -431,7 +422,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             request.height,
             _request.timeoutTimestamp,
             request.gaslimit
-        );
+            );
     }
 
     /**
@@ -455,7 +446,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             response.request.body,
             response.request.gaslimit,
             response.response
-        );
+            );
     }
 
     /**
