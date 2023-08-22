@@ -12,7 +12,7 @@ impl From<ConsensusMessage> for BeefyConsensusProof {
         BeefyConsensusProof {
             relay: message.mmr.into(),
             parachain: ParachainProof {
-                parachains: message
+                parachain: message
                     .parachain
                     .parachains
                     .into_iter()
@@ -21,7 +21,8 @@ impl From<ConsensusMessage> for BeefyConsensusProof {
                         id: parachain.para_id.into(),
                         header: parachain.header.into(),
                     })
-                    .collect(),
+                    .collect::<Vec<_>>()[0]
+                    .clone(),
                 proof: message
                     .parachain
                     .proof

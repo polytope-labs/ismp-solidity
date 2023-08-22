@@ -7,12 +7,10 @@ import "../src/interfaces/IConsensusClient.sol";
 contract TestConsensusClient is IConsensusClient {
     function verifyConsensus(bytes memory consensusState, bytes memory proof)
         external
-        returns (bytes memory, IntermediateState[] memory)
+        returns (bytes memory, IntermediateState memory)
     {
         IntermediateState memory intermediate = abi.decode(proof, (IntermediateState));
-        IntermediateState[] memory intermediates = new IntermediateState[](1);
-        intermediates[0] = intermediate;
 
-        return (consensusState, intermediates);
+        return (consensusState, intermediate);
     }
 }

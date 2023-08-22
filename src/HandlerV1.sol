@@ -21,6 +21,8 @@ contract HandlerV1 is IHandler, Context {
     bytes private constant REQUEST_COMMITMENT_STORAGE_PREFIX =
         hex"103895530afb23bb607661426d55eb8b0484aecefe882c3ce64e6f82507f715a";
 
+    event StateMachineUpdated(uint256 stateMachineId, uint256 height);
+
     /**
      * @dev Handle incoming consensus messages
      * @param host - Ismp host
@@ -38,18 +40,21 @@ contract HandlerV1 is IHandler, Context {
             "IHandler: still in challenge period"
         );
 
-        (bytes memory verifiedState, IntermediateState[] memory intermediates) =
+        (bytes memory verifiedState, IntermediateState memory intermediate) =
             IConsensusClient(host.consensusClient()).verifyConsensus(host.consensusState(), proof);
         host.storeConsensusState(verifiedState);
         host.storeConsensusUpdateTime(host.timestamp());
 
-        uint256 commitmentsLen = intermediates.length;
-        for (uint256 i = 0; i < commitmentsLen; i++) {
-            IntermediateState memory intermediate = intermediates[i];
+        if (intermediate.height > host.latestStateMachineHeight()) {
             StateMachineHeight memory stateMachineHeight =
                 StateMachineHeight({stateMachineId: intermediate.stateMachineId, height: intermediate.height});
             host.storeStateMachineCommitment(stateMachineHeight, intermediate.commitment);
             host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.timestamp());
+            host.storeLatestStateMachineHeight(stateMachineHeight.height);
+            emit StateMachineUpdated({
+                stateMachineId: stateMachineHeight.stateMachineId,
+                height: stateMachineHeight.height
+            });
         }
     }
 

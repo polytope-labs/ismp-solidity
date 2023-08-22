@@ -58,6 +58,11 @@ interface IIsmpHost is IIsmpDispatcher {
     function consensusUpdateTime() external returns (uint256);
 
     /**
+     * @return the latest state machine height
+     */
+    function latestStateMachineHeight() external returns (uint256);
+
+    /**
      * @return the state of the consensus client
      */
     function consensusState() external returns (bytes memory);
@@ -113,6 +118,12 @@ interface IIsmpHost is IIsmpDispatcher {
      * @param timestamp - new timestamp
      */
     function storeConsensusUpdateTime(uint256 timestamp) external;
+
+    /**
+     * @dev Store the latest state machine height
+     * @param height State Machine Height
+     */
+    function storeLatestStateMachineHeight(uint256 height) external;
 
     /**
      * @dev Store the commitment at `state height`

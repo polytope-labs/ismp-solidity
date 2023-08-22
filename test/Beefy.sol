@@ -11,12 +11,12 @@ contract BeefyConsensusClientTest is Test {
     BeefyV1 internal beefy;
 
     function setUp() public virtual {
-        beefy = new BeefyV1();
+        beefy = new BeefyV1(2000);
     }
 
     function VerifyV1(bytes memory trustedConsensusState, bytes memory proof)
         public
-        returns (bytes memory, IntermediateState[] memory)
+        returns (bytes memory, IntermediateState memory)
     {
         return beefy.verifyConsensus(trustedConsensusState, proof);
     }
