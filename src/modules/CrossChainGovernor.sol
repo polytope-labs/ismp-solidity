@@ -10,17 +10,30 @@ import "../interfaces/StateMachine.sol";
 contract CrossChainGovernor is IIsmpModule {
     using Bytes for bytes;
 
+    address private _admin;
     address private _host;
     uint256 private _paraId;
 
     modifier onlyIsmpHost() {
-        require(msg.sender == _host, "CrossChainGovernance: Invalid caller");
+        require(msg.sender == _host, "CrossChainGovernor: Invalid caller");
         _;
     }
 
-    constructor(address host, uint256 paraId) {
-        _host = host;
+    modifier onlyAdmin() {
+        require(msg.sender == _host, "CrossChainGovernor: Invalid caller");
+        _;
+    }
+
+    constructor(address admin, uint256 paraId) {
+        _admin = admin;
         _paraId = paraId;
+    }
+
+    // This function can only be called once by the admin to set the IsmpHost.
+    // This exists to seal the cyclic dependency between this contract & the ismp host.
+    function setIsmpHost(address host) public onlyAdmin {
+        _host = host;
+        _admin = address(0);
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {
