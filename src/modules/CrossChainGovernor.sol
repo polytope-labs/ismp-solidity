@@ -40,7 +40,7 @@ contract CrossChainGovernor is IIsmpModule {
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {
-        require(request.source.equals(StateMachine.polkadot(_paraId)), "Unauthorized request");
+        require(request.source.equals(StateMachine.polkadot(_params.paraId)), "Unauthorized request");
         (
             address admin,
             address consensus,
@@ -53,7 +53,7 @@ contract CrossChainGovernor is IIsmpModule {
         BridgeParams memory params =
             BridgeParams(admin, consensus, handler, challengePeriod, unstakingPeriod, defaultTimeout);
 
-        IIsmpHost(_host).setBridgeParams(params);
+        IIsmpHost(_params.host).setBridgeParams(params);
     }
 
     function onPostResponse(PostResponse memory response) external pure {

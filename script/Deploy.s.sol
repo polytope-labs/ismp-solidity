@@ -10,29 +10,29 @@ import "../src/modules/CrossChainGovernor.sol";
 
 contract DeployScript is Script {
     address public deployer = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
-    bytes32 public salt = keccak256("hyperbridge");
+    bytes32 public salt = 0xc023405e9aa0e9ea794732e4076a4f5baca75496cfc2179e94829661ba6396d8;
+    address public admin = 0x123463a4B065722E99115D6c222f267d9cABb524;
+    uint256 public paraId = 2021;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address admin = 0x123463a4b065722e99115d6c222f267d9cabb524;
-        uint256 paraId = 2021;
-
-        console.logBytes32(salt);
-
         TestConsensusClient c = new TestConsensusClient{salt: salt}();
-        address consensusClient = getAddress(type(TestConsensusClient).creationCode, bytes(""));
+        address consensusClient = getAddress(type(TestConsensusClient).creationCode, new bytes(0));
         console.logAddress(consensusClient);
+        assert(consensusClient == address(c));
 
-        HandlerV1 h = new HandlerV1{salt: salt}();
-        address handler = getAddress(type(TestConsensusClient).creationCode, bytes(""));
+        HandlerV1 hv1 = new HandlerV1{salt: salt}();
+        address handler = getAddress(type(HandlerV1).creationCode, new bytes(0));
         console.logAddress(handler);
+        assert(handler == address(hv1));
 
         GovernorParams memory gParams = GovernorParams(admin, address(0), paraId);
         CrossChainGovernor g = new CrossChainGovernor{salt: salt}(gParams);
         address governor = getAddress(type(CrossChainGovernor).creationCode, abi.encode(gParams));
         console.logAddress(governor);
+        assert(governor == address(g));
 
         HostParams memory params = HostParams({
             admin: admin,
@@ -49,6 +49,7 @@ contract DeployScript is Script {
         TestHost h = new TestHost{salt: salt}(params);
         address host = getAddress(type(TestHost).creationCode, abi.encode(params));
         console.logAddress(host);
+        assert(host == address(h));
 
         // set the ismphost on the cross-chain governor
         g.setIsmpHost(host);
