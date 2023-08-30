@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import "../test/TestConsensusClient.sol";
 import "../src/HandlerV1.sol";
 import "../src/EvmHost.sol";
 import "../test/TestHost.sol";
 import "../src/modules/CrossChainGovernor.sol";
+import "../src/beefy/BeefyV1.sol";
 
 contract DeployScript is Script {
     address public deployer = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
@@ -18,8 +18,8 @@ contract DeployScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        TestConsensusClient c = new TestConsensusClient{salt: salt}();
-        address consensusClient = getAddress(type(TestConsensusClient).creationCode, new bytes(0));
+        BeefyV1 c = new BeefyV1{salt: salt}(paraId);
+        address consensusClient = getAddress(type(BeefyV1).creationCode, abi.encode(paraId));
         console.logAddress(consensusClient);
         assert(consensusClient == address(c));
 
