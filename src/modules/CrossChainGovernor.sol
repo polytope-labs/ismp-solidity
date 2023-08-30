@@ -7,24 +7,40 @@ import "../interfaces/IIsmpModule.sol";
 import "../interfaces/IIsmpHost.sol";
 import "../interfaces/StateMachine.sol";
 
+struct GovernorParams {
+    address admin;
+    address host;
+    uint256 paraId;
+}
+
 contract CrossChainGovernor is IIsmpModule {
     using Bytes for bytes;
 
-    address private _host;
-    uint256 private _paraId;
+    GovernorParams private _params;
 
     modifier onlyIsmpHost() {
-        require(msg.sender == _host, "CrossChainGovernance: Invalid caller");
+        require(msg.sender == _params.host, "CrossChainGovernor: Invalid caller");
         _;
     }
 
-    constructor(address host, uint256 paraId) {
-        _host = host;
-        _paraId = paraId;
+    modifier onlyAdmin() {
+        require(msg.sender == _params.admin, "CrossChainGovernor: Invalid caller");
+        _;
+    }
+
+    constructor(GovernorParams memory params) {
+        _params = params;
+    }
+
+    // This function can only be called once by the admin to set the IsmpHost.
+    // This exists to seal the cyclic dependency between this contract & the ismp host.
+    function setIsmpHost(address host) public onlyAdmin {
+        _params.host = host;
+        _params.admin = address(0);
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {
-        require(request.source.equals(StateMachine.polkadot(_paraId)), "Unauthorized request");
+        require(request.source.equals(StateMachine.polkadot(_params.paraId)), "Unauthorized request");
         (
             address admin,
             address consensus,
@@ -37,7 +53,7 @@ contract CrossChainGovernor is IIsmpModule {
         BridgeParams memory params =
             BridgeParams(admin, consensus, handler, challengePeriod, unstakingPeriod, defaultTimeout);
 
-        IIsmpHost(_host).setBridgeParams(params);
+        IIsmpHost(_params.host).setBridgeParams(params);
     }
 
     function onPostResponse(PostResponse memory response) external pure {
