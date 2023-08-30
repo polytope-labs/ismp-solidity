@@ -9,42 +9,60 @@ import "../test/TestHost.sol";
 import "../src/modules/CrossChainGovernor.sol";
 
 contract DeployScript is Script {
+    address public deployer = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
+    bytes32 public salt = keccak256("hyperbridge");
+
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address admin = 0x4242424242424242424242424242424242424242;
+        address admin = 0x123463a4b065722e99115d6c222f267d9cabb524;
         uint256 paraId = 2021;
 
-        bytes32 salt = keccak256("hyperbridge");
         console.logBytes32(salt);
 
-        TestConsensusClient consensusClient = new TestConsensusClient{salt: salt}();
-        console.logAddress(address(consensusClient));
+        TestConsensusClient c = new TestConsensusClient{salt: salt}();
+        address consensusClient = getAddress(type(TestConsensusClient).creationCode, bytes(""));
+        console.logAddress(consensusClient);
 
-        HandlerV1 handler = new HandlerV1{salt: salt}();
-        console.logAddress(address(handler));
+        HandlerV1 h = new HandlerV1{salt: salt}();
+        address handler = getAddress(type(TestConsensusClient).creationCode, bytes(""));
+        console.logAddress(handler);
 
-        CrossChainGovernor governor = new CrossChainGovernor{salt: salt}(admin, paraId);
-        console.logAddress(address(governor));
+        GovernorParams memory gParams = GovernorParams(admin, address(0), paraId);
+        CrossChainGovernor g = new CrossChainGovernor{salt: salt}(gParams);
+        address governor = getAddress(type(CrossChainGovernor).creationCode, abi.encode(gParams));
+        console.logAddress(governor);
 
         HostParams memory params = HostParams({
             admin: admin,
-            crosschainGovernor: address(governor),
-            handler: address(handler),
+            crosschainGovernor: governor,
+            handler: handler,
             defaultTimeout: 5000,
             unStakingPeriod: 5000,
-        // for this test
+            // for this test
             challengePeriod: 0,
-            consensusClient: address(consensusClient),
+            consensusClient: consensusClient,
             lastUpdated: 0,
             consensusState: new bytes(0)
         });
-        TestHost host = new TestHost{salt: salt}(params);
-        console.logAddress(address(host));
+        TestHost h = new TestHost{salt: salt}(params);
+        address host = getAddress(type(TestHost).creationCode, abi.encode(params));
+        console.logAddress(host);
+
+        // set the ismphost on the cross-chain governor
+        g.setIsmpHost(host);
 
         vm.stopBroadcast();
     }
+
+    function getAddress(bytes memory code, bytes memory init) public returns (address) {
+        return address(
+            uint160(
+                uint256(
+                    keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(abi.encodePacked(code, init))))
+                )
+            )
+        );
+    }
 }
-
-
