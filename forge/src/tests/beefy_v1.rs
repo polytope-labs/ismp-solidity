@@ -99,7 +99,7 @@ async fn beefy_consensus_client_test() {
         .await
         .unwrap();
 
-    let mut subscription_stream = subscription.enumerate().take(100);
+    let mut subscription_stream = subscription.enumerate();
     while let Some((_count, Ok(commitment))) = subscription_stream.next().await {
         let commitment: sp_core::Bytes = FromStr::from_str(&commitment).unwrap();
         let VersionedFinalityProof::V1(signed_commitment) =
@@ -130,7 +130,7 @@ async fn beefy_consensus_client_test() {
 
         dbg!(&consensus_proof.relay.signed_commitment.commitment);
 
-        let (new_state, intermediates) = execute::<_, (bytes::Bytes, Vec<abi::IntermediateState>)>(
+        let (new_state, intermediates) = execute::<_, (bytes::Bytes, abi::IntermediateState)>(
             &mut runner,
             "BeefyConsensusClientTest",
             "VerifyV1",
@@ -147,8 +147,7 @@ async fn beefy_consensus_client_test() {
         {
             let debug_consensus_state: ConsensusState = consensus_state.clone().into();
             dbg!(&debug_consensus_state);
-            let intermediate: Vec<local::IntermediateState> =
-                intermediates.into_iter().map(Into::into).collect();
+            let intermediate: local::IntermediateState = intermediates.into();
             dbg!(&intermediate);
         }
     }
