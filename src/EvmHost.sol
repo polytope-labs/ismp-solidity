@@ -33,6 +33,8 @@ struct HostParams {
 
 /// Ismp implementation for Evm hosts
 abstract contract EvmHost is IIsmpHost, Context {
+    using Bytes for bytes;
+
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
 
@@ -287,6 +289,16 @@ abstract contract EvmHost is IIsmpHost, Context {
      */
     function setFrozenState(bool newState) public onlyAdmin {
         _frozen = newState;
+    }
+
+    /**
+     * @dev sets the initial consensus state
+     * @param consensusState initial consensus state
+     */
+    function setConsensusState(bytes memory consensusState) public onlyAdmin {
+        require(_hostParams.consensusState.equals(new bytes(0)), "Unauthorized action");
+
+        _hostParams.consensusState = consensusState;
     }
 
     /**
