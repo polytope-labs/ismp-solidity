@@ -5,6 +5,7 @@ import "forge-std/Script.sol";
 import "../src/HandlerV1.sol";
 import "../src/EvmHost.sol";
 import "../test/TestHost.sol";
+import "../test/MockModule.sol";
 import "../src/modules/CrossChainGovernor.sol";
 import "../src/beefy/BeefyV1.sol";
 
@@ -55,6 +56,9 @@ contract DeployScript is Script {
 
         // set the ismphost on the cross-chain governor
         g.setIsmpHost(host);
+
+        // deploy the mock module as well
+        MockModule m = new MockModule(host, paraId);
 
         vm.stopBroadcast();
     }
