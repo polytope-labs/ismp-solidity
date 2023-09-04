@@ -37,7 +37,7 @@ contract PostTimeoutTest is Test {
         });
         host = new TestHost(params);
 
-        MockModule test = new MockModule(address(host));
+        MockModule test = new MockModule(address(host), 0);
         testModule = address(test);
     }
 

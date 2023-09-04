@@ -60,7 +60,6 @@ contract MockModule is IIsmpModule {
     }
 
     function dispatchToParachain() public {
-        bytes32 commitment = Message.hash(request);
         DispatchPost memory post = DispatchPost({
             body: bytes("hello from ethereum"),
             dest: StateMachine.polkadot(_paraId),
