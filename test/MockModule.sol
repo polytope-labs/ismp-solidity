@@ -70,23 +70,23 @@ contract MockModule is IIsmpModule {
         IIsmpDispatcher(_host).dispatch(post);
     }
 
-    function onAccept(PostRequest memory request) public onlyIsmpHost {
+    function onAccept(PostRequest memory request) external onlyIsmpHost {
         emit PostReceived(string(request.body));
     }
 
-    function onPostResponse(PostResponse memory response) public onlyIsmpHost {
+    function onPostResponse(PostResponse memory response) external onlyIsmpHost {
         emit PostResponseReceived();
     }
 
-    function onGetResponse(GetResponse memory response) public onlyIsmpHost {
+    function onGetResponse(GetResponse memory response) external onlyIsmpHost {
         emit GetResponseReceived();
     }
 
-    function onGetTimeout(GetRequest memory request) public onlyIsmpHost {
+    function onGetTimeout(GetRequest memory request) external onlyIsmpHost {
         emit GetTimeoutReceived();
     }
 
-    function onPostTimeout(PostRequest memory request) public onlyIsmpHost {
+    function onPostTimeout(PostRequest memory request) external onlyIsmpHost {
         emit PostTimeoutReceived();
     }
 }
