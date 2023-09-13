@@ -61,8 +61,8 @@ struct PostResponse {
 struct PostRequestLeaf {
     // The request
     PostRequest request;
-    // it's merkle mountain range index
-    uint256 mmrIndex;
+    // It's index in the mmr leaves
+    uint256 index;
     // it's k-index
     uint256 kIndex;
 }
@@ -71,8 +71,8 @@ struct PostRequestLeaf {
 struct PostResponseLeaf {
     // The response
     PostResponse response;
-    // it's merkle mountain range index
-    uint256 mmrIndex;
+    // It's index in the mmr leaves
+    uint256 index;
     // it's k-index
     uint256 kIndex;
 }
@@ -83,8 +83,8 @@ struct Proof {
     StateMachineHeight height;
     // the multi-proof
     bytes32[] multiproof;
-    // The total size of the mmr for this proof
-    uint256 mmrSize;
+    // The total number of leaves in the mmr for this proof.
+    uint256 leafCount;
 }
 
 // A message for handling incoming requests

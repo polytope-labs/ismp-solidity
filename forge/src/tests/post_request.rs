@@ -74,7 +74,7 @@ async fn test_post_request_proof() {
     .encode();
 
     let message = abi::PostRequestMessage {
-        proof: abi::Proof { height, multiproof, mmr_size: proof.mmr_size().into() },
+        proof: abi::Proof { height, multiproof, leaf_count: (61).into() },
         requests: vec![abi::PostRequestLeaf {
             request: abi::PostRequest {
                 source: post.source.to_string().as_bytes().to_vec().into(),
@@ -86,7 +86,7 @@ async fn test_post_request_proof() {
                 body: post.data.into(),
                 gaslimit: post.gas_limit,
             },
-            mmr_index: pos.into(),
+            index: 30.into(),
             k_index: k_index.into(),
         }],
     };

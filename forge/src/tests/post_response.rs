@@ -43,8 +43,9 @@ async fn test_post_response_proof() {
 
     // create the mmr tree and insert it
     let mut mmr = Mmr::default();
+    let leaf_count = 30;
 
-    for _ in 0..30 {
+    for _ in 0..leaf_count {
         let hash = H256::random();
         mmr.push(DataOrHash::Hash(hash)).unwrap();
     }
@@ -82,13 +83,13 @@ async fn test_post_response_proof() {
     };
 
     let message = abi::PostResponseMessage {
-        proof: abi::Proof { height, multiproof, mmr_size: proof.mmr_size().into() },
+        proof: abi::Proof { height, multiproof, leaf_count: (leaf_count + 1).into() },
         responses: vec![abi::PostResponseLeaf {
             response: abi::PostResponse {
                 request: sol_post.clone(),
                 response: post_response.response.into(),
             },
-            mmr_index: pos.into(),
+            index: 30.into(),
             k_index: k_index.into(),
         }],
     };

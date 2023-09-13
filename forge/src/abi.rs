@@ -41,10 +41,10 @@ impl From<ConsensusMessage> for BeefyConsensusProof {
 
 impl From<MmrProof> for RelayChainProof {
     fn from(value: MmrProof) -> Self {
-        let mmr_index = value.mmr_proof.leaf_indices[0];
+        let leaf_index = value.mmr_proof.leaf_indices[0];
         let k_index = mmr_position_to_k_index(
-            vec![leaf_index_to_pos(mmr_index)],
-            leaf_index_to_mmr_size(mmr_index),
+            vec![leaf_index_to_pos(leaf_index)],
+            leaf_index_to_mmr_size(leaf_index),
         )[0]
         .1;
 
@@ -82,6 +82,7 @@ impl From<MmrProof> for RelayChainProof {
                 next_authority_set: value.latest_mmr_leaf.beefy_next_authority_set.into(),
                 extra: value.latest_mmr_leaf.leaf_extra.into(),
                 k_index: k_index.into(),
+                leaf_index: leaf_index.into(),
             },
             mmr_proof: value.mmr_proof.items.into_iter().map(Into::into).collect(),
             proof: value

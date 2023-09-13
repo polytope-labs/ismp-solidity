@@ -61,6 +61,7 @@ struct BeefyMmrLeaf {
     AuthoritySetCommitment nextAuthoritySet;
     bytes32 extra;
     uint256 kIndex;
+    uint256 leafIndex;
 }
 
 struct PartialBeefyMmrLeaf {
@@ -240,14 +241,12 @@ contract BeefyV1 is IConsensusClient {
         pure
     {
         bytes32 hash = keccak256(Codec.Encode(relay.latestMmrLeaf));
-        uint256 index = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber);
-        uint256 mmrSize = MerkleMountainRange.leafIndexToMmrSize(uint64(index));
-        uint256 pos = MerkleMountainRange.leafIndexToPos(uint64(index));
+        uint256 leafCount = leafIndex(trustedState.beefyActivationBlock, relay.latestMmrLeaf.parentNumber) + 1;
 
         MmrLeaf[] memory leaves = new MmrLeaf[](1);
-        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, pos, hash);
+        leaves[0] = MmrLeaf(relay.latestMmrLeaf.kIndex, relay.latestMmrLeaf.leafIndex, hash);
 
-        require(MerkleMountainRange.VerifyProof(mmrRoot, relay.mmrProof, leaves, mmrSize), "Invalid Mmr Proof");
+        require(MerkleMountainRange.VerifyProof(mmrRoot, relay.mmrProof, leaves, leafCount), "Invalid Mmr Proof");
     }
 
     /// Verifies that some parachain header has been finalized, given the current trusted consensus state.

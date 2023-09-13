@@ -217,6 +217,7 @@ async fn test_decode_encode() {
             ]),
             Token::FixedBytes(mmr_leaf.leaf_extra.as_bytes().to_vec()),
             Token::Uint(Uint::from(0)),
+            Token::Uint(Uint::from(0)),
         ]);
 
         let encoded =
