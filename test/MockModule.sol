@@ -62,7 +62,7 @@ contract MockModule is IIsmpModule {
     function dispatchToParachain() public {
         DispatchPost memory post = DispatchPost({
             body: bytes("hello from ethereum"),
-            dest: StateMachine.polkadot(_paraId),
+            dest: StateMachine.kusama(_paraId),
             timeout: 60 * 60, // one hour
             to: bytes("ismp-ast"), // ismp demo pallet
             gaslimit: 0 // unnedeed, since it's a pallet
