@@ -51,6 +51,8 @@ contract HandlerV1 is IHandler, Context {
             host.storeStateMachineCommitment(stateMachineHeight, intermediate.commitment);
             host.storeStateMachineCommitmentUpdateTime(stateMachineHeight, host.timestamp());
             host.storeLatestStateMachineHeight(stateMachineHeight.height);
+
+            // todo: enforce challenge period
             emit StateMachineUpdated({
                 stateMachineId: stateMachineHeight.stateMachineId,
                 height: stateMachineHeight.height
@@ -79,14 +81,14 @@ contract HandlerV1 is IHandler, Context {
             bytes32 commitment = Message.hash(leaf.request);
             require(!host.requestReceipts(commitment), "IHandler: Duplicate request");
 
-            leaves[i] = MmrLeaf(leaf.kIndex, leaf.mmrIndex, commitment);
+            leaves[i] = MmrLeaf(leaf.kIndex, leaf.index, commitment);
         }
 
         bytes32 root = host.stateMachineCommitment(request.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
         require(
-            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.mmrSize),
+            MerkleMountainRange.VerifyProof(root, request.proof.multiproof, leaves, request.proof.leafCount),
             "IHandler: Invalid request proofs"
         );
 
@@ -118,14 +120,14 @@ contract HandlerV1 is IHandler, Context {
             bytes32 responseCommitment = Message.hash(leaf.response);
             require(!host.responseCommitments(responseCommitment), "IHandler: Duplicate Post response");
 
-            leaves[i] = MmrLeaf(leaf.kIndex, leaf.mmrIndex, responseCommitment);
+            leaves[i] = MmrLeaf(leaf.kIndex, leaf.index, responseCommitment);
         }
 
         bytes32 root = host.stateMachineCommitment(response.proof.height).overlayRoot;
 
         require(root != bytes32(0), "IHandler: Proof height not found!");
         require(
-            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.mmrSize),
+            MerkleMountainRange.VerifyProof(root, response.proof.multiproof, leaves, response.proof.leafCount),
             "IHandler: Invalid response proofs"
         );
 

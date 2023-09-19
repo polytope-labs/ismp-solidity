@@ -19,17 +19,17 @@ library StateMachine {
 
     // Address the ethereum "execution layer"
     function ethereum() public pure returns (bytes memory) {
-        return bytes("ETH");
+        return bytes("ETHE");
     }
 
     // Address the Arbitrum state machine
     function arbitrum() public pure returns (bytes memory) {
-        return bytes("ARB");
+        return bytes("ARBI");
     }
 
     // Address the Optimism state machine
     function optimism() public pure returns (bytes memory) {
-        return bytes("OP");
+        return bytes("OPTI");
     }
 
     // Address the Base state machine

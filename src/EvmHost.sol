@@ -33,6 +33,8 @@ struct HostParams {
 
 /// Ismp implementation for Evm hosts
 abstract contract EvmHost is IIsmpHost, Context {
+    using Bytes for bytes;
+
     // commitment of all outgoing requests
     mapping(bytes32 => bool) private _requestCommitments;
 
@@ -290,6 +292,16 @@ abstract contract EvmHost is IIsmpHost, Context {
     }
 
     /**
+     * @dev sets the initial consensus state
+     * @param consensusState initial consensus state
+     */
+    function setConsensusState(bytes memory consensusState) public onlyAdmin {
+        require(_hostParams.consensusState.equals(new bytes(0)), "Unauthorized action");
+
+        _hostParams.consensusState = consensusState;
+    }
+
+    /**
      * @return the unstaking period
      */
     function unStakingPeriod() public view returns (uint256) {
@@ -389,7 +401,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             _request.timeoutTimestamp,
             _request.body,
             _request.gaslimit
-            );
+        );
     }
 
     /**
@@ -422,7 +434,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             request.height,
             _request.timeoutTimestamp,
             request.gaslimit
-            );
+        );
     }
 
     /**
@@ -446,7 +458,7 @@ abstract contract EvmHost is IIsmpHost, Context {
             response.request.body,
             response.request.gaslimit,
             response.response
-            );
+        );
     }
 
     /**

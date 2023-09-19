@@ -1,4 +1,3 @@
-#[cfg(feature = "beefy")]
 mod beefy_v1;
 mod get_response;
 mod get_timeout;

@@ -1,3 +1,4 @@
+#![cfg(test)]
 #![allow(unused_parens)]
 
 pub mod abi;

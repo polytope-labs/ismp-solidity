@@ -5,6 +5,7 @@ import "forge-std/Script.sol";
 import "../src/HandlerV1.sol";
 import "../src/EvmHost.sol";
 import "../test/TestHost.sol";
+import "../test/MockModule.sol";
 import "../src/modules/CrossChainGovernor.sol";
 import "../src/beefy/BeefyV1.sol";
 
@@ -12,7 +13,7 @@ contract DeployScript is Script {
     address public deployer = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
     bytes32 public salt = 0xc023405e9aa0e9ea794732e4076a4f5baca75496cfc2179e94829661ba6396d8;
     address public admin = 0x123463a4B065722E99115D6c222f267d9cABb524;
-    uint256 public paraId = 2021;
+    uint256 public paraId = 2000;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -38,8 +39,10 @@ contract DeployScript is Script {
             admin: admin,
             crosschainGovernor: governor,
             handler: handler,
-            defaultTimeout: 5000,
-            unStakingPeriod: 5000,
+            // 20 mins
+            defaultTimeout: 20 * 60,
+            // 21 days
+            unStakingPeriod: 21 * (60 * 60 * 24),
             // for this test
             challengePeriod: 0,
             consensusClient: consensusClient,
@@ -53,6 +56,12 @@ contract DeployScript is Script {
 
         // set the ismphost on the cross-chain governor
         g.setIsmpHost(host);
+
+        // deploy the mock module as well
+        MockModule m = new MockModule{salt: salt}(host, paraId);
+        address mock = getAddress(type(MockModule).creationCode, abi.encode(host, paraId));
+        console.logAddress(mock);
+        assert(mock == address(m));
 
         vm.stopBroadcast();
     }

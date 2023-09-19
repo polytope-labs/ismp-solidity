@@ -160,12 +160,16 @@ where
         args,
         0.into(),
         single_runner.errors,
-    )?;
+    );
 
-    println!("Gas used {fn_name}: {:#?}", result.gas_used);
-    println!("Logs {fn_name}: {:#?}", result.logs);
+    match &result {
+        Ok(call) => print_logs(fn_name, call.gas_used, &call.logs),
+        Err(EvmError::Execution(execution)) =>
+            print_logs(fn_name, execution.gas_used, &execution.logs),
+        _ => {},
+    };
 
-    Ok(result.result)
+    Ok(result?.result)
 }
 
 pub async fn single_runner<'a>(
@@ -180,8 +184,8 @@ pub async fn single_runner<'a>(
         .find(|(id, (_, _, _))| id.name == contract_name)
         .unwrap();
 
-    dbg!(deploy_code.len());
-    dbg!(2 * 0x6000); // max init codesize
+    // dbg!(deploy_code.len());
+    // dbg!(2 * 0x6000); // max init codesize
 
     let executor = ExecutorBuilder::default()
         .with_cheatcodes(runner.cheats_config.clone())
@@ -204,8 +208,7 @@ pub async fn single_runner<'a>(
     );
 
     let setup = single_runner.setup(true);
-    let TestSetup { address, reason, .. } = setup;
-    dbg!(reason);
+    let TestSetup { address, .. } = setup;
 
     (single_runner, address)
 }

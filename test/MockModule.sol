@@ -4,13 +4,15 @@
 pragma solidity 0.8.17;
 
 import "../src/interfaces/IIsmpModule.sol";
+import "../src/interfaces/StateMachine.sol";
 
 contract MockModule is IIsmpModule {
     event PostResponseReceived();
     event GetResponseReceived();
     event PostTimeoutReceived();
     event GetTimeoutReceived();
-    event PostReceived();
+    event PostReceived(string message);
+    event MessageDispatched();
 
     error NotIsmpHost();
     error ExecutionFailed();
@@ -24,9 +26,11 @@ contract MockModule is IIsmpModule {
     }
 
     address internal _host;
+    uint256 internal _paraId;
 
-    constructor(address host) {
+    constructor(address host, uint256 paraId) {
         _host = host;
+        _paraId = paraId;
     }
 
     function dispatch(PostRequest memory request) public returns (bytes32) {
@@ -55,27 +59,34 @@ contract MockModule is IIsmpModule {
         return commitment;
     }
 
-    function onAccept(PostRequest memory request) public onlyIsmpHost {
-        emit PostReceived();
+    function dispatchToParachain() public {
+        DispatchPost memory post = DispatchPost({
+            body: bytes("hello from ethereum"),
+            dest: StateMachine.kusama(_paraId),
+            timeout: 60 * 60, // one hour
+            to: bytes("ismp-ast"), // ismp demo pallet
+            gaslimit: 0 // unnedeed, since it's a pallet
+        });
+        IIsmpDispatcher(_host).dispatch(post);
     }
 
-    function onPostResponse(PostResponse memory response) public onlyIsmpHost {
+    function onAccept(PostRequest memory request) external onlyIsmpHost {
+        emit PostReceived(string(request.body));
+    }
+
+    function onPostResponse(PostResponse memory response) external onlyIsmpHost {
         emit PostResponseReceived();
     }
 
-    function onGetResponse(GetResponse memory response) public onlyIsmpHost {
-        //        console.log("key: ");
-        //        console.logBytes(response.values[0].key);
-        //        console.log("value: ");
-        //        console.logBytes(response.values[0].value);
+    function onGetResponse(GetResponse memory response) external onlyIsmpHost {
         emit GetResponseReceived();
     }
 
-    function onGetTimeout(GetRequest memory request) public onlyIsmpHost {
+    function onGetTimeout(GetRequest memory request) external onlyIsmpHost {
         emit GetTimeoutReceived();
     }
 
-    function onPostTimeout(PostRequest memory request) public onlyIsmpHost {
+    function onPostTimeout(PostRequest memory request) external onlyIsmpHost {
         emit PostTimeoutReceived();
     }
 }
