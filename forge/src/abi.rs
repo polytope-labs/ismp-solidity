@@ -104,7 +104,7 @@ impl From<BeefyNextAuthoritySet<H256>> for AuthoritySetCommitment {
         AuthoritySetCommitment {
             id: value.id.into(),
             len: value.len.into(),
-            root: value.root.into(),
+            root: value.keyset_commitment.into(),
         }
     }
 }
@@ -128,12 +128,12 @@ impl From<BeefyConsensusState> for ConsensusState {
             current_authorities: BeefyNextAuthoritySet {
                 id: value.current_authority_set.id.as_u64(),
                 len: value.current_authority_set.len.as_u32(),
-                root: value.current_authority_set.root.into(),
+                keyset_commitment: value.current_authority_set.root.into(),
             },
             next_authorities: BeefyNextAuthoritySet {
                 id: value.next_authority_set.id.as_u64(),
                 len: value.next_authority_set.len.as_u32(),
-                root: value.next_authority_set.root.into(),
+                keyset_commitment: value.next_authority_set.root.into(),
             },
         }
     }

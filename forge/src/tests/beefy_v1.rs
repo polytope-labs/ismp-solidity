@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::{abi, abi::local, execute, runner};
-use beefy_primitives::{crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFinalityProof};
+use beefy_primitives::{ecdsa_crypto::Signature, mmr::MmrLeaf, Commitment, VersionedFinalityProof};
 use beefy_prover::Prover;
 use beefy_verifier_primitives::ConsensusState;
 use codec::{Decode, Encode};
@@ -213,7 +213,9 @@ async fn test_decode_encode() {
             Token::Tuple(vec![
                 Token::Uint(Uint::from(mmr_leaf.beefy_next_authority_set.id)),
                 Token::Uint(Uint::from(mmr_leaf.beefy_next_authority_set.len)),
-                Token::FixedBytes(mmr_leaf.beefy_next_authority_set.root.as_bytes().to_vec()),
+                Token::FixedBytes(
+                    mmr_leaf.beefy_next_authority_set.keyset_commitment.as_bytes().to_vec(),
+                ),
             ]),
             Token::FixedBytes(mmr_leaf.leaf_extra.as_bytes().to_vec()),
             Token::Uint(Uint::from(0)),

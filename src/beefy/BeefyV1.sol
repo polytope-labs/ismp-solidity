@@ -204,20 +204,12 @@ contract BeefyV1 is IConsensusClient {
         // check authorities proof
         if (is_current_authorities) {
             require(
-                relayProof.proof.length == MerkleMultiProof.TreeHeight(trustedState.currentAuthoritySet.len),
-                "Invalid current authorities proof height"
-            );
-            require(
-                MerkleMultiProof.VerifyProofSorted(trustedState.currentAuthoritySet.root, relayProof.proof, authorities),
+                MerkleMultiProof.VerifyProof(trustedState.currentAuthoritySet.root, relayProof.proof, authorities),
                 "Invalid current authorities proof"
             );
         } else {
             require(
-                relayProof.proof.length == MerkleMultiProof.TreeHeight(trustedState.nextAuthoritySet.len),
-                "Invalid next authorities proof height"
-            );
-            require(
-                MerkleMultiProof.VerifyProofSorted(trustedState.nextAuthoritySet.root, relayProof.proof, authorities),
+                MerkleMultiProof.VerifyProof(trustedState.nextAuthoritySet.root, relayProof.proof, authorities),
                 "Invalid next authorities proof"
             );
         }
@@ -287,7 +279,7 @@ contract BeefyV1 is IConsensusClient {
         IntermediateState memory intermediate =
             IntermediateState(para.id, header.number, StateCommitment(timestamp, commitment, header.stateRoot));
 
-        require(MerkleMultiProof.VerifyProofSorted(headsRoot, proof.proof, leaves), "Invalid parachains heads proof");
+        require(MerkleMultiProof.VerifyProof(headsRoot, proof.proof, leaves), "Invalid parachains heads proof");
 
         return intermediate;
     }
