@@ -58,8 +58,8 @@ contract DeployScript is Script {
         g.setIsmpHost(host);
 
         // deploy the mock module as well
-        MockModule m = new MockModule{salt: salt}(host, paraId);
-        address mock = getAddress(type(MockModule).creationCode, abi.encode(host, paraId));
+        MockModule m = new MockModule{salt: salt}(host);
+        address mock = getAddress(type(MockModule).creationCode, abi.encode(host));
         console.logAddress(mock);
         assert(mock == address(m));
 

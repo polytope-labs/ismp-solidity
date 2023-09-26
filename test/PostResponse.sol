@@ -37,7 +37,7 @@ contract PostResponseTest is Test {
         });
         host = new TestHost(params);
 
-        MockModule test = new MockModule(address(host), 0);
+        MockModule test = new MockModule(address(host));
         testModule = address(test);
     }
 
