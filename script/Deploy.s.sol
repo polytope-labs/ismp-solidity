@@ -10,8 +10,7 @@ import "../src/modules/CrossChainGovernor.sol";
 import "../src/beefy/BeefyV1.sol";
 
 contract DeployScript is Script {
-    address public deployer = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
-    bytes32 public salt = 0xc023405e9aa0e9ea794732e4076a4f5baca75496cfc2179e94829661ba6396d8;
+    bytes32 public salt = 0x7d489ac7dbbd9716771dae34d7f9ab46bfb2a7840f5ba8a4a7a1321277303b11;
 
     function run() external {
         address admin = vm.envAddress("ADMIN");
@@ -48,15 +47,5 @@ contract DeployScript is Script {
         MockModule m = new MockModule{salt: salt}(address(host));
 
         vm.stopBroadcast();
-    }
-
-    function getAddress(bytes memory code, bytes memory init) public returns (address) {
-        return address(
-            uint160(
-                uint256(
-                    keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(abi.encodePacked(code, init))))
-                )
-            )
-        );
     }
 }
