@@ -10,9 +10,9 @@ import "../src/modules/CrossChainGovernor.sol";
 import "../src/beefy/BeefyV1.sol";
 
 contract DeployScript is Script {
-    bytes32 public salt = 0x7d489ac7dbbd9716771dae34d7f9ab46bfb2a7840f5ba8a4a7a1321277303b11;
-
     function run() external {
+        bytes32 salt = keccak256(bytes("plshalphyperbridge"));
+
         address admin = vm.envAddress("ADMIN");
         uint256 paraId = vm.envUint("PARA_ID");
         bytes32 privateKey = vm.envBytes32("PRIVATE_KEY");

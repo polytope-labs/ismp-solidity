@@ -6,9 +6,11 @@ use beefy_prover::Prover;
 use beefy_verifier_primitives::ConsensusState;
 use codec::{Decode, Encode};
 use ethers::abi::{AbiDecode, AbiEncode, Token, Uint};
+use foundry_common::abi::IntoFunction;
 use futures::stream::StreamExt;
 use hex_literal::hex;
 use primitive_types::H256;
+use serde::Deserialize;
 use sp_runtime::{generic::Header, traits::BlakeTwo256};
 use std::str::FromStr;
 use subxt::{
@@ -48,18 +50,32 @@ impl subxt::Config for HyperbridgeConfig {
     type ExtrinsicParams = SubstrateExtrinsicParams<Self>;
 }
 
+fn default_para_id() -> u32 {
+    2000
+}
+fn default_relay_ws_url() -> String {
+    "ws://127.0.0.1:9944".to_string()
+}
+fn default_para_ws_url() -> String {
+    "ws://127.0.0.1:9988".to_string()
+}
+#[derive(Deserialize, Debug)]
+struct Config {
+    #[serde(default = "default_relay_ws_url")]
+    relay_ws_url: String,
+    #[serde(default = "default_para_ws_url")]
+    para_ws_url: String,
+    #[serde(default = "default_para_id")]
+    para_id: u32,
+}
+
 #[tokio::test(flavor = "multi_thread")]
-#[ignore]
+// #[ignore]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
-    let relay_ws_url = format!(
-        "ws://{}:9944",
-        std::env::var("RELAY_HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
-    );
-    let para_ws_url = format!(
-        "ws://{}:9988",
-        std::env::var("PARA_HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
-    );
+    let config = envy::from_env::<Config>().unwrap();
+    dbg!(&config);
+    let Config { relay_ws_url, para_ws_url, para_id } = config;
 
     let relay = subxt::client::OnlineClient::<PolkadotConfig>::from_url(relay_ws_url)
         .await
@@ -85,7 +101,12 @@ async fn beefy_consensus_client_test() {
     println!("Parachains Onboarded");
 
     let para = subxt::client::OnlineClient::<Hyperbridge>::from_url(para_ws_url).await.unwrap();
-    let prover = Prover { relay, para, para_ids: vec![2000] };
+    let prover = Prover {
+        beefy_activation_block: beefy_prover::constants::ROCOCO_BEEFY_ACTIVATION_BLOCK,
+        relay,
+        para,
+        para_ids: vec![para_id],
+    };
     let initial_state = prover.get_initial_consensus_state().await.unwrap();
     let mut consensus_state: abi::BeefyConsensusState = initial_state.into();
     let subscription: Subscription<String> = prover
@@ -105,7 +126,6 @@ async fn beefy_consensus_client_test() {
         let VersionedFinalityProof::V1(signed_commitment) =
             VersionedFinalityProof::<u32, Signature>::decode(&mut &*commitment).unwrap();
 
-        println!("\n\n\n\n");
         match signed_commitment.commitment.validator_set_id {
             id if id < consensus_state.current_authority_set.id.as_u64() => {
                 // If validator set id of signed commitment is less than current validator set id we
