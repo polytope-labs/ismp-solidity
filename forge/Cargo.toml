@@ -40,8 +40,8 @@ merkle-mountain-range-labs = { package = "ckb-merkle-mountain-range", git = "htt
 rs_merkle = { git = "https://github.com/polytope-labs/rs-merkle", branch = "seun/2d-merkle-proofs" }
 ismp-primitives = { git = "https://github.com/polytope-labs/ismp-substrate", branch = "main" }
 ismp = { git = "https://github.com/polytope-labs/ismp-rs", branch = "main" }
-beefy-prover = { git = "ssh://git@github.com/polytope-labs/tesseract.git", branch = "seun/polkadot-v1.1.0" }
-beefy-verifier-primitives = { git = "ssh://git@github.com/polytope-labs/tesseract.git", branch = "seun/polkadot-v1.1.0" }
+beefy-prover = { git = "ssh://git@github.com/polytope-labs/tesseract.git", branch = "main" }
+beefy-verifier-primitives = { git = "ssh://git@github.com/polytope-labs/tesseract.git", branch = "main" }
 
 ## substrate
 beefy-primitives = { package = "sp-consensus-beefy", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }

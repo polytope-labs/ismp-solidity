@@ -53,6 +53,9 @@ impl subxt::Config for HyperbridgeConfig {
 fn default_para_id() -> u32 {
     2000
 }
+fn activation_block() -> u32 {
+    2000
+}
 fn default_relay_ws_url() -> String {
     "ws://127.0.0.1:9944".to_string()
 }
@@ -67,29 +70,30 @@ struct Config {
     para_ws_url: String,
     #[serde(default = "default_para_id")]
     para_id: u32,
+    #[serde(default = "activation_block")]
+    activation_block: u32,
 }
 
 #[tokio::test(flavor = "multi_thread")]
-// #[ignore]
 async fn beefy_consensus_client_test() {
     let mut runner = runner();
     let config = envy::from_env::<Config>().unwrap();
-    dbg!(&config);
-    let Config { relay_ws_url, para_ws_url, para_id } = config;
+    let Config { relay_ws_url, para_ws_url, para_id, activation_block } = config;
 
     let relay = subxt::client::OnlineClient::<PolkadotConfig>::from_url(relay_ws_url)
         .await
         .unwrap();
 
-    relay
-        .blocks()
+    let para = subxt::client::OnlineClient::<Hyperbridge>::from_url(para_ws_url).await.unwrap();
+
+    para.blocks()
         .subscribe_best()
         .await
         .unwrap()
         .skip_while(|result| {
             futures::future::ready({
                 match result {
-                    Ok(block) => block.number() < 10,
+                    Ok(block) => block.number() < 1,
                     Err(_) => false,
                 }
             })
@@ -100,13 +104,8 @@ async fn beefy_consensus_client_test() {
 
     println!("Parachains Onboarded");
 
-    let para = subxt::client::OnlineClient::<Hyperbridge>::from_url(para_ws_url).await.unwrap();
-    let prover = Prover {
-        beefy_activation_block: beefy_prover::constants::ROCOCO_BEEFY_ACTIVATION_BLOCK,
-        relay,
-        para,
-        para_ids: vec![para_id],
-    };
+    let prover =
+        Prover { beefy_activation_block: activation_block, relay, para, para_ids: vec![para_id] };
     let initial_state = prover.get_initial_consensus_state().await.unwrap();
     let mut consensus_state: abi::BeefyConsensusState = initial_state.into();
     let subscription: Subscription<String> = prover
@@ -120,7 +119,7 @@ async fn beefy_consensus_client_test() {
         .await
         .unwrap();
 
-    let mut subscription_stream = subscription.enumerate();
+    let mut subscription_stream = subscription.take(10).enumerate();
     while let Some((_count, Ok(commitment))) = subscription_stream.next().await {
         let commitment: sp_core::Bytes = FromStr::from_str(&commitment).unwrap();
         let VersionedFinalityProof::V1(signed_commitment) =

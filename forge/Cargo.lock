@@ -779,7 +779,7 @@ dependencies = [
 [[package]]
 name = "beefy-prover"
 version = "0.1.0"
-source = "git+ssh://git@github.com/polytope-labs/tesseract.git?branch=seun/polkadot-v1.1.0#f4850d25e7d2d225c1b3a471963738bfd2f533c1"
+source = "git+ssh://git@github.com/polytope-labs/tesseract.git?branch=main#0a153d17ec41402bfe8c9571753669cb6fb255f4"
 dependencies = [
  "anyhow",
  "beefy-verifier-primitives",
@@ -805,7 +805,7 @@ dependencies = [
 [[package]]
 name = "beefy-verifier-primitives"
 version = "0.1.0"
-source = "git+ssh://git@github.com/polytope-labs/tesseract.git?branch=seun/polkadot-v1.1.0#f4850d25e7d2d225c1b3a471963738bfd2f533c1"
+source = "git+ssh://git@github.com/polytope-labs/tesseract.git?branch=main#0a153d17ec41402bfe8c9571753669cb6fb255f4"
 dependencies = [
  "derive_more",
  "parity-scale-codec",
