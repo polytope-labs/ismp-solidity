@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
-import {IIsmpDispatcher, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmpDispatcher.sol";
+import {IIsmp, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmp.sol";
 
 struct BridgeParams {
     address admin;
@@ -13,7 +13,7 @@ struct BridgeParams {
     uint256 defaultTimeout;
 }
 
-interface IIsmpHost is IIsmpDispatcher {
+interface IIsmpHost is IIsmp {
     /**
      * @return the host admin
      */

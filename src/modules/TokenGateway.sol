@@ -6,7 +6,7 @@ pragma solidity 0.8.17;
 //import "openzeppelin/utils/introspection/IERC165.sol";
 //import "multichain-token/interfaces/IERC6160Ext20.sol";
 //import {IERC_ACL_CORE} from "multichain-token/interfaces/IERCAclCore.sol";
-//import "../interfaces/IIsmpDispatcher.sol";
+//import "../interfaces/IIsmp.sol";
 //import "../interfaces/IIsmpHost.sol";
 //
 ////
@@ -113,7 +113,7 @@ pragma solidity 0.8.17;
 //            timeoutTimestamp: timestamp,
 //            gaslimit: gasLimit
 //        });
-//        IIsmpDispatcher(host).dispatch(postRequest);
+//        IIsmp(host).dispatch(postRequest);
 //    }
 //
 //    function onAccept(PostRequest memory request) public onlyDispatcher {

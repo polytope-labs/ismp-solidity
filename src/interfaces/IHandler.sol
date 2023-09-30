@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "./IIsmpHost.sol";
-import "./IIsmpDispatcher.sol";
+import "./IIsmp.sol";
 
 interface IHandler {
     /**

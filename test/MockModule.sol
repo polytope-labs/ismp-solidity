@@ -41,7 +41,7 @@ contract MockModule is IIsmpModule {
             to: request.to,
             gaslimit: request.gaslimit
         });
-        IIsmpDispatcher(_host).dispatch(post);
+        IIsmp(_host).dispatch(post);
         return commitment;
     }
 
@@ -54,7 +54,7 @@ contract MockModule is IIsmpModule {
             timeout: request.timeoutTimestamp,
             gaslimit: request.gaslimit
         });
-        IIsmpDispatcher(_host).dispatch(get);
+        IIsmp(_host).dispatch(get);
         return commitment;
     }
 
@@ -69,7 +69,7 @@ contract MockModule is IIsmpModule {
             // unused for now
             gaslimit: 0
         });
-        IIsmpDispatcher(_host).dispatch(post);
+        IIsmp(_host).dispatch(post);
     }
 
     function dispatchToParachain(uint256 _paraId) public {
@@ -80,7 +80,7 @@ contract MockModule is IIsmpModule {
             to: bytes("ismp-ast"), // ismp demo pallet
             gaslimit: 0 // unnedeed, since it's a pallet
         });
-        IIsmpDispatcher(_host).dispatch(post);
+        IIsmp(_host).dispatch(post);
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "./interfaces/IIsmpDispatcher.sol";
+import "./interfaces/IIsmp.sol";
 import "./interfaces/IIsmpModule.sol";
 
 library SubstrateDispatcher {
