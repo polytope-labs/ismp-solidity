@@ -4,6 +4,7 @@
 pragma solidity 0.8.17;
 
 import "../src/interfaces/IIsmpModule.sol";
+import "../src/interfaces/IIsmpHost.sol";
 import "../src/interfaces/StateMachine.sol";
 
 contract MockModule is IIsmpModule {
@@ -26,11 +27,9 @@ contract MockModule is IIsmpModule {
     }
 
     address internal _host;
-    uint256 internal _paraId;
 
-    constructor(address host, uint256 paraId) {
+    constructor(address host) {
         _host = host;
-        _paraId = paraId;
     }
 
     function dispatch(PostRequest memory request) public returns (bytes32) {
@@ -42,7 +41,7 @@ contract MockModule is IIsmpModule {
             to: request.to,
             gaslimit: request.gaslimit
         });
-        IIsmpDispatcher(_host).dispatch(post);
+        IIsmp(_host).dispatch(post);
         return commitment;
     }
 
@@ -55,11 +54,25 @@ contract MockModule is IIsmpModule {
             timeout: request.timeoutTimestamp,
             gaslimit: request.gaslimit
         });
-        IIsmpDispatcher(_host).dispatch(get);
+        IIsmp(_host).dispatch(get);
         return commitment;
     }
 
-    function dispatchToParachain() public {
+    function ping(bytes memory dest) public {
+        DispatchPost memory post = DispatchPost({
+            body: bytes.concat("hello from ", IIsmpHost(_host).host()),
+            dest: dest,
+            // one hour
+            timeout: 60 * 60,
+            // instance of this pallet on another chain.
+            to: abi.encodePacked(address(this)),
+            // unused for now
+            gaslimit: 0
+        });
+        IIsmp(_host).dispatch(post);
+    }
+
+    function dispatchToParachain(uint256 _paraId) public {
         DispatchPost memory post = DispatchPost({
             body: bytes("hello from ethereum"),
             dest: StateMachine.kusama(_paraId),
@@ -67,7 +80,7 @@ contract MockModule is IIsmpModule {
             to: bytes("ismp-ast"), // ismp demo pallet
             gaslimit: 0 // unnedeed, since it's a pallet
         });
-        IIsmpDispatcher(_host).dispatch(post);
+        IIsmp(_host).dispatch(post);
     }
 
     function onAccept(PostRequest memory request) external onlyIsmpHost {

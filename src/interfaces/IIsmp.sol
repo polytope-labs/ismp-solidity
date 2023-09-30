@@ -159,7 +159,8 @@ struct DispatchGet {
     uint64 gaslimit;
 }
 
-interface IIsmpDispatcher {
+// The core ISMP API, IIsmpModules use this interface to send outgoing get/post requests & responses
+interface IIsmp {
     /**
      * @dev Dispatch a post request to the ISMP router.
      * @param request - post request

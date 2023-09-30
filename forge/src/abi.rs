@@ -113,7 +113,7 @@ impl From<ConsensusState> for BeefyConsensusState {
     fn from(value: ConsensusState) -> Self {
         BeefyConsensusState {
             latest_height: value.latest_beefy_height.into(),
-            beefy_activation_block: Default::default(),
+            beefy_activation_block: value.beefy_activation_block.into(),
             current_authority_set: value.current_authorities.into(),
             next_authority_set: value.next_authorities.into(),
         }
@@ -123,6 +123,7 @@ impl From<ConsensusState> for BeefyConsensusState {
 impl From<BeefyConsensusState> for ConsensusState {
     fn from(value: BeefyConsensusState) -> Self {
         ConsensusState {
+            beefy_activation_block: value.beefy_activation_block.as_u32(),
             latest_beefy_height: value.latest_height.as_u32(),
             mmr_root_hash: Default::default(),
             current_authorities: BeefyNextAuthoritySet {

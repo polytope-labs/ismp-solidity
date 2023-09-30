@@ -289,7 +289,7 @@ contract BeefyV1 is IConsensusClient {
         if (activationBlock == 0) {
             return parentNumber;
         } else {
-            return activationBlock - (parentNumber + 2);
+            return parentNumber - activationBlock;
         }
     }
 

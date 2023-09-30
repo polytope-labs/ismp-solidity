@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   FOUNDRY_PROFILE: ci
 
@@ -48,6 +52,10 @@ jobs:
       - uses: actions-rs/cargo@v1
         env:
           RUSTFLAGS: "-C link-args=-Wl,--allow-multiple-definition"
+          ACTIVATION_BLOCK: 3804028
+          PARA_ID: 1000
+          RELAY_WS_URL: "wss://rococo-rpc.polkadot.io:443"
+          PARA_WS_URL: "wss://rococo-asset-hub-rpc.polkadot.io:443"
         with:
           command: test
           toolchain: stable
