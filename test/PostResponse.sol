@@ -7,7 +7,7 @@ import "../src/beefy/BeefyV1.sol";
 import "./TestConsensusClient.sol";
 import "../src/EvmHost.sol";
 import "./TestHost.sol";
-import {MockModule} from "./MockModule.sol";
+import {PingModule} from "./PingModule.sol";
 import "../src/HandlerV1.sol";
 
 contract PostResponseTest is Test {
@@ -37,7 +37,7 @@ contract PostResponseTest is Test {
         });
         host = new TestHost(params);
 
-        MockModule test = new MockModule(address(host));
+        PingModule test = new PingModule(address(host));
         testModule = address(test);
     }
 
@@ -50,7 +50,7 @@ contract PostResponseTest is Test {
         PostRequest memory request,
         PostResponseMessage memory message
     ) public {
-        MockModule(testModule).dispatch(request);
+        PingModule(testModule).dispatch(request);
         handler.handleConsensus(host, consensusProof);
         vm.warp(5000);
         handler.handlePostResponses(host, message);

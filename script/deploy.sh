@@ -9,7 +9,7 @@ else
     # load prod .env
     source .env.prod
     # deploy
-    forge script script/Deploy.s.sol:DeployScript --rpc-url "$1" --broadcast -vvvv --sender="$ADMIN"
+    HOST=$1 forge script script/Deploy.s.sol:DeployScript --rpc-url "$1" --broadcast -vvvv --sender="$ADMIN"
     # verify
-    forge script script/Deploy.s.sol:DeployScript --rpc-url "$1" --resume --verify -vvvv --sender="$ADMIN"
+    HOST=$1 forge script script/Deploy.s.sol:DeployScript --rpc-url "$1" --resume --verify -vvvv --sender="$ADMIN"
 fi

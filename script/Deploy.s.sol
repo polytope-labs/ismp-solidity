@@ -2,19 +2,26 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
+import "openzeppelin/utils/Strings.sol";
+
 import "../src/HandlerV1.sol";
-import "../src/EvmHost.sol";
-import "../test/TestHost.sol";
-import "../test/MockModule.sol";
+import "../test/PingModule.sol";
 import "../src/modules/CrossChainGovernor.sol";
 import "../src/beefy/BeefyV1.sol";
 
-contract DeployScript is Script {
-    function run() external {
-        bytes32 salt = keccak256(bytes("plshalphyperbridge"));
+import "../src/EvmHost.sol";
+import "../src/hosts/Ethereum.sol";
+import "../src/hosts/Arbitrum.sol";
+import "../src/hosts/Optimism.sol";
+import "../src/hosts/Base.sol";
 
+contract DeployScript is Script {
+    bytes32 public salt = keccak256(bytes("gargantuan_v0"));
+
+    function run() external {
         address admin = vm.envAddress("ADMIN");
         uint256 paraId = vm.envUint("PARA_ID");
+        string memory host = vm.envString("HOST");
         bytes32 privateKey = vm.envBytes32("PRIVATE_KEY");
         vm.startBroadcast(uint256(privateKey));
 
@@ -40,12 +47,29 @@ contract DeployScript is Script {
             lastUpdated: 0,
             consensusState: new bytes(0)
         });
-        TestHost host = new TestHost{salt: salt}(params);
+        address hostAddress = initHost(host, params);
         // set the ismphost on the cross-chain governor
-        governor.setIsmpHost(address(host));
-        // deploy the mock module as well
-        MockModule m = new MockModule{salt: salt}(address(host));
-
+        governor.setIsmpHost(hostAddress);
+        // deploy the ping module as well
+        PingModule m = new PingModule{salt: salt}(hostAddress);
         vm.stopBroadcast();
+    }
+
+    function initHost(string memory host, HostParams memory params) public returns (address) {
+        if (Strings.equal(host, "goerli")) {
+            EthereumHost host = new EthereumHost{salt: salt}(params);
+            return address(host);
+        } else if (Strings.equal(host, "arbitrum-goerli")) {
+            ArbitrumHost host = new ArbitrumHost{salt: salt}(params);
+            return address(host);
+        } else if (Strings.equal(host, "optimism-goerli")) {
+            OptimismHost host = new OptimismHost{salt: salt}(params);
+            return address(host);
+        } else if (Strings.equal(host, "base-goerli")) {
+            BaseHost host = new BaseHost{salt: salt}(params);
+            return address(host);
+        }
+
+        revert("unknown host");
     }
 }

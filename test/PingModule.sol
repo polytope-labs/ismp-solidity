@@ -7,7 +7,12 @@ import "../src/interfaces/IIsmpModule.sol";
 import "../src/interfaces/IIsmpHost.sol";
 import "../src/interfaces/StateMachine.sol";
 
-contract MockModule is IIsmpModule {
+struct PingMessage {
+    bytes dest;
+    address module;
+}
+
+contract PingModule is IIsmpModule {
     event PostResponseReceived();
     event GetResponseReceived();
     event PostTimeoutReceived();
@@ -58,14 +63,14 @@ contract MockModule is IIsmpModule {
         return commitment;
     }
 
-    function ping(bytes memory dest) public {
+    function ping(PingMessage memory msg) public {
         DispatchPost memory post = DispatchPost({
             body: bytes.concat("hello from ", IIsmpHost(_host).host()),
-            dest: dest,
+            dest: msg.dest,
             // one hour
             timeout: 60 * 60,
             // instance of this pallet on another chain.
-            to: abi.encodePacked(address(this)),
+            to: abi.encodePacked(address(msg.module)),
             // unused for now
             gaslimit: 0
         });
