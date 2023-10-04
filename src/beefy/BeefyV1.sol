@@ -216,8 +216,7 @@ contract BeefyV1 is IConsensusClient {
 
         verifyMmrLeaf(trustedState, relayProof, mmrRoot);
 
-        if (!is_current_authorities || trustedState.nextAuthoritySet.id != relayProof.latestMmrLeaf.nextAuthoritySet.id)
-        {
+        if (relayProof.latestMmrLeaf.nextAuthoritySet.id > trustedState.nextAuthoritySet.id) {
             trustedState.currentAuthoritySet = trustedState.nextAuthoritySet;
             trustedState.nextAuthoritySet = relayProof.latestMmrLeaf.nextAuthoritySet;
         }

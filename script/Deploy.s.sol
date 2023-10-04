@@ -37,8 +37,8 @@ contract DeployScript is Script {
             admin: admin,
             crosschainGovernor: address(governor),
             handler: address(handler),
-            // 20 mins
-            defaultTimeout: 20 * 60,
+            // 45 mins
+            defaultTimeout: 45 * 60,
             // 21 days
             unStakingPeriod: 21 * (60 * 60 * 24),
             // for this test
