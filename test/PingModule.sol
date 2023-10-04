@@ -81,7 +81,8 @@ contract PingModule is IIsmpModule {
         DispatchPost memory post = DispatchPost({
             body: bytes("hello from ethereum"),
             dest: StateMachine.kusama(_paraId),
-            timeout: 60 * 60, // one hour
+            timeout: 0,
+            // timeout: 60 * 60, // one hour
             to: bytes("ismp-ast"), // ismp demo pallet
             gaslimit: 0 // unnedeed, since it's a pallet
         });
