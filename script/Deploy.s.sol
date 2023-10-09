@@ -56,7 +56,7 @@ contract DeployScript is Script {
     }
 
     function initHost(string memory host, HostParams memory params) public returns (address) {
-        if (Strings.equal(host, "goerli")) {
+        if (Strings.equal(host, "goerli") || Strings.equal(host, "ethereum")) {
             EthereumHost host = new EthereumHost{salt: salt}(params);
             return address(host);
         } else if (Strings.equal(host, "arbitrum-goerli")) {

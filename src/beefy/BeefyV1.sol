@@ -259,6 +259,7 @@ contract BeefyV1 is IConsensusClient {
         uint256 timestamp;
         for (uint256 j = 0; j < header.digests.length; j++) {
             if (header.digests[j].isConsensus && header.digests[j].consensus.consensusId == ISMP_CONSENSUS_ID) {
+                // yes it may be empty
                 commitment = Bytes.toBytes32(header.digests[j].consensus.data);
             }
 
@@ -267,8 +268,7 @@ contract BeefyV1 is IConsensusClient {
                 timestamp = slot * SLOT_DURATION;
             }
         }
-        // require(commitment != bytes32(0), "Request commitment not found!");
-        require(timestamp != 0, "Request commitment not found!");
+        require(timestamp != 0, "timestamp not found!");
 
         leaves[0] = Node(
             para.index,
