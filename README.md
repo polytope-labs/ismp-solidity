@@ -1,23 +1,15 @@
 # ismp-solidity
 
-[ISMP](https://github.com/polytope-labs/ismp) implementation for both Substrate & EVM hosts.
+[ISMP](https://github.com/polytope-labs/ismp) protocol specification for EVM environments.
 
 ## Interface
 
- - [`IConsensusClient`](./src/interfaces/IConsensusClient.sol)
-   - [`BeefyV1`](./src/beefy/BeefyV1.sol)
- - [`IHandler`](./src/interfaces/IHandler.sol)
-   - [`HandlerV1`](./src/HandlerV1.sol)
- - [`IIsmpHost`](./src/interfaces/IIsmpHost.sol)
-   - [`EvmHost`](./src/EvmHost.sol)
- - [`IIsmp`](./src/interfaces/IIsmp.sol)
- - [`IIsmpModule`](./src/interfaces/IIsmpModule.sol)
-   - [`CrossChainGovernor`](./src/modules/CrossChainGovernor.sol)
+ - [`IConsensusClient`](src/IConsensusClient.sol)
+ - [`IHandler`](src/IHandler.sol)
+ - [`IIsmpHost`](src/IIsmpHost.sol)
+ - [`IIsmp`](src/IIsmp.sol)
+ - [`IIsmpModule`](src/IIsmpModule.sol)
 
-
-## `EvmHost`
-
-The `EvmHost` contract is the core implementation of ISMP for native EVM environments. This contract will live across EVM chains allowing local contracts to interop over the ISMP network.
 
 ## License
 
