@@ -6,3 +6,6 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 	branch = master
 
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = git@github.com:foundry-rs/forge-std
