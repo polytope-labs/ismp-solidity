@@ -4,23 +4,28 @@ pragma solidity 0.8.17;
 import "./IIsmpHost.sol";
 import "./IIsmp.sol";
 
+/*
+    The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
+    The handler is decoupled from the IsmpHost as it allows for easy upgrading through the cross-chain governor contract.
+    This way more efficient cryptographic schemes can be employed without cumbersome contract migrations.
+*/
 interface IHandler {
     /**
-     * @dev Handle incoming consensus messages
+     * @dev Handle an incoming consensus message. This uses the IConsensusClient contract registered on the host to perform the consensus message verification.
      * @param host - Ismp host
      * @param proof - consensus proof
      */
     function handleConsensus(IIsmpHost host, bytes memory proof) external;
 
     /**
-     * @dev check request proofs, message delay and timeouts, then dispatch post requests to modules
+     * @dev Handles incoming POST requests, check request proofs, message delay and timeouts, then dispatch POST requests to the apropriate contracts.
      * @param host - Ismp host
      * @param request - batch post requests
      */
     function handlePostRequests(IIsmpHost host, PostRequestMessage memory request) external;
 
     /**
-     * @dev check response proofs, message delay and timeouts, then dispatch post responses to modules
+     * @dev Handles incoming POST responses, check response proofs, message delay and timeouts, then dispatch POST responses to the apropriate contracts.
      * @param host - Ismp host
      * @param response - batch post responses
      */

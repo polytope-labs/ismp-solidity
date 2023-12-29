@@ -4,13 +4,26 @@ pragma solidity 0.8.17;
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IIsmp, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmp.sol";
 
-struct BridgeParams {
-    address admin;
-    address consensus;
-    address handler;
-    uint256 challengePeriod;
-    uint256 unstakingPeriod;
+// The IsmpHost parameters
+struct HostParams {
+    // default timeout in seconds for requests.
     uint256 defaultTimeout;
+    // timestamp for when the consensus was most recently updated
+    uint256 lastUpdated;
+    // unstaking period
+    uint256 unStakingPeriod;
+    // minimum challenge period in seconds;
+    uint256 challengePeriod;
+    // consensus client contract
+    address consensusClient;
+    // admin account, this only has the rights to freeze, or unfreeze the bridge
+    address admin;
+    // Ismp request/response handler
+    address handler;
+    // the authorized cross-chain governor contract
+    address crosschainGovernor;
+    // current verified state of the consensus client;
+    bytes consensusState;
 }
 
 interface IIsmpHost is IIsmp {
@@ -18,6 +31,11 @@ interface IIsmpHost is IIsmp {
      * @return the host admin
      */
     function admin() external returns (address);
+
+    /**
+     * @return the address of the DAI ERC-20 contract on this state machine
+     */
+    function dai() external returns (address);
 
     /**
      * @return the host state machine id
@@ -111,7 +129,7 @@ interface IIsmpHost is IIsmp {
      * @dev Updates bridge params
      * @param params new bridge params
      */
-    function setBridgeParams(BridgeParams memory params) external;
+    function setHostParams(HostParams memory params) external;
 
     /**
      * @dev Store the timestamp when the consensus client was updated

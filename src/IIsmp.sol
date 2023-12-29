@@ -133,7 +133,7 @@ struct PostResponseMessage {
 
 // An object for dispatching post requests to the IsmpDispatcher
 struct DispatchPost {
-    // bytes representation of the destination chain
+    // bytes representation of the destination state machine
     bytes dest;
     // the destination module
     bytes to;
@@ -147,7 +147,7 @@ struct DispatchPost {
 
 // An object for dispatching get requests to the IsmpDispatcher
 struct DispatchGet {
-    // bytes representation of the destination chain
+    // bytes representation of the destination state machine
     bytes dest;
     // height at which to read the state machine
     uint64 height;
@@ -168,16 +168,37 @@ interface IIsmp {
     function dispatch(DispatchPost memory request) external;
 
     /**
-     * @dev Dispatch a get request to the ISMP router.
+     * @dev Dispatch a POST request to the ISMP router and pay for a relayer.
+     * The amount provided is charged to tx.origin in $DAI.
+     * @param request - post request
+     */
+    function dispatch(DispatchPost memory request, uint256 amount) external;
+
+    /**
+     * @dev Dispatch a GET request to the ISMP router.
      * @param request - get request
      */
     function dispatch(DispatchGet memory request) external;
+
+    /**
+     * @dev Dispatch a GET request to the ISMP router and pay for a relayer.
+     * The amount provided is charged to tx.origin in $DAI.
+     * @param request - get request
+     */
+    function dispatch(DispatchGet memory request, uint256 amount) external;
 
     /**
      * @dev Provide a response to a previously received request.
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external;
+
+    /**
+     * @dev Provide a response to a previously received request.
+     * The amount provided is charged to tx.origin in $DAI.
+     * @param response - post response
+     */
+    function dispatch(PostResponse memory response, uint256 amount) external;
 }
 
 library Message {
