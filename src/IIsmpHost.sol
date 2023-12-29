@@ -87,7 +87,7 @@ interface IIsmpHost is IIsmp {
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (RequestMetadata);
+    function requestCommitments(bytes32 commitment) external returns (RequestMetadata memory);
 
     /**
      * @param commitment - commitment to the response
