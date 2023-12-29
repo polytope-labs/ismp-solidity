@@ -4,6 +4,14 @@ pragma solidity 0.8.17;
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IIsmp, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmp.sol";
 
+// Some metadata about the request
+struct RequestMetadata {
+    // the relayer fee
+    uint256 fee;
+    // user who initiated the request
+    address sender;
+}
+
 interface IIsmpHost is IIsmp {
     /**
      * @return the host admin
@@ -79,7 +87,7 @@ interface IIsmpHost is IIsmp {
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (bool);
+    function requestCommitments(bytes32 commitment) external returns (RequestMetadata);
 
     /**
      * @param commitment - commitment to the response
