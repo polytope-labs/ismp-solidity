@@ -36,4 +36,14 @@ library StateMachine {
     function base() public pure returns (bytes memory) {
         return bytes("BASE");
     }
+
+    // Address the Polygon POS state machine
+    function polygon() public pure returns (bytes memory) {
+        return bytes("POLY");
+    }
+
+    // Address the Binance smart chain state machine
+    function bsc() public pure returns (bytes memory) {
+        return bytes("BSC");
+    }
 }

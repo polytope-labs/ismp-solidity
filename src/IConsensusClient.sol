@@ -8,9 +8,9 @@ import "solidity-merkle-trees/MerklePatricia.sol";
 struct StateCommitment {
     // This timestamp is useful for handling request timeouts.
     uint256 timestamp;
-    // merkle mountain range commitment to all ismp requests & response.
+    // Overlay trie commitment to all ismp requests & response.
     bytes32 overlayRoot;
-    // state root for processing timeouts.
+    // State trie commitment at the given block height
     bytes32 stateRoot;
 }
 
@@ -23,6 +23,7 @@ struct StateMachineHeight {
     uint256 height;
 }
 
+// An intermediate state in the series of state transitions undergone by a given state machine.
 struct IntermediateState {
     // the state machine identifier
     uint256 stateMachineId;
@@ -32,6 +33,8 @@ struct IntermediateState {
     StateCommitment commitment;
 }
 
+// The consensus client interface responsible for the verification of consensus datagrams.
+// It's internals is opaque to the ISMP framework allowing it to evolve as needed.
 interface IConsensusClient {
     /// Verify the consensus proof and return the new trusted consensus state and any intermediate states finalized
     /// by this consensus proof.
