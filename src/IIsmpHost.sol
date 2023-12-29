@@ -160,11 +160,11 @@ interface IIsmpHost is IIsmp {
      * @dev Dispatch an incoming get timeout to source module
      * @param timeout - get timeout
      */
-    function dispatchIncoming(GetRequest memory timeout) external;
+    function dispatchIncoming(GetRequest memory timeout, RequestMetadata memory meta, bytes32 commitment) external;
 
     /**
      * @dev Dispatch an incoming post timeout to source module
      * @param timeout - post timeout
      */
-    function dispatchIncoming(PostTimeout memory timeout) external;
+    function dispatchIncoming(PostTimeout memory timeout, RequestMetadata memory meta, bytes32 commitment) external;
 }
