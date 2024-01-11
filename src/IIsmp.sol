@@ -39,7 +39,7 @@ struct GetRequest {
     bytes[] keys;
     // height at which to read destination state machine
     uint64 height;
-    // gas limit for executing this request on destination & its response (if any) on the source.
+    // gas limit for executing this request on destination 
     uint64 gaslimit;
 }
 
@@ -55,6 +55,10 @@ struct PostResponse {
     PostRequest request;
     // bytes for post response
     bytes response;
+    // timestamp by which this response times out.
+    uint64 timeoutTimestamp;
+    // gas limit for executing this response on destination which is the source of the request.
+    uint64 gaslimit;
 }
 
 // A post request as a leaf in a merkle tree
@@ -114,9 +118,18 @@ struct PostTimeout {
     PostRequest request;
 }
 
-struct PostTimeoutMessage {
+struct PostRequestTimeoutMessage {
     // requests which have timed-out
     PostRequest[] timeouts;
+    // the height of the state machine proof
+    StateMachineHeight height;
+    // non-membership proof of the requests
+    bytes[] proof;
+}
+
+struct PostResponseTimeoutMessage {
+    // requests which have timed-out
+    PostResponse[] timeouts;
     // the height of the state machine proof
     StateMachineHeight height;
     // non-membership proof of the requests
@@ -209,10 +222,12 @@ library Message {
                 res.request.dest,
                 res.request.nonce,
                 res.request.timeoutTimestamp,
-                res.request.body,
                 res.request.from,
                 res.request.to,
-                res.response
+                res.request.body,
+                res.response,
+                res.timeoutTimestamp,
+                res.gaslimit
             )
         );
     }

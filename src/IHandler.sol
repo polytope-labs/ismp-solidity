@@ -43,12 +43,19 @@ interface IHandler {
      * @param host - Ismp host
      * @param message - batch post request timeouts
      */
-    function handlePostTimeouts(IIsmpHost host, PostTimeoutMessage memory message) external;
+    function handlePostRequestTimeouts(IIsmpHost host, PostRequestTimeoutMessage memory message) external;
+
+    /**
+     * @dev check timeout proofs then dispatch to modules
+     * @param host - Ismp host
+     * @param message - batch post request timeouts
+     */
+    function handlePostResponseTimeouts(IIsmpHost host, PostResponseTimeoutMessage memory message) external;
 
     /**
      * @dev dispatch to modules
      * @param host - Ismp host
      * @param message - batch get request timeouts
      */
-    function handleGetTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external;
+    function handleGetRequestTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external;
 }
