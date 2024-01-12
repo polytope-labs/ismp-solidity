@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "solidity-merkle-trees/MerklePatricia.sol";
-
 // The state commiment identifies a commiment to some intermediate state in the state machine.
 // This contains some metadata about the state machine like it's own timestamp at the time of this commitment.
 struct StateCommitment {

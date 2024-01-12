@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "openzeppelin/utils/Strings.sol";
+import {Strings} from "openzeppelin/utils/Strings.sol";
 
 library StateMachine {
     /// The identifier for the relay chain.
