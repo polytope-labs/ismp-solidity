@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "solidity-merkle-trees/MerklePatricia.sol";
-
+import {StorageValue} from "solidity-merkle-trees/MerklePatricia.sol";
 import {StateMachineHeight} from "./IConsensusClient.sol";
 
 struct PostRequest {
@@ -39,7 +38,7 @@ struct GetRequest {
     bytes[] keys;
     // height at which to read destination state machine
     uint64 height;
-    // gas limit for executing this request on destination & its response (if any) on the source.
+    // gas limit for executing this request on destination
     uint64 gaslimit;
 }
 
@@ -55,6 +54,10 @@ struct PostResponse {
     PostRequest request;
     // bytes for post response
     bytes response;
+    // timestamp by which this response times out.
+    uint64 timeoutTimestamp;
+    // gas limit for executing this response on destination which is the source of the request.
+    uint64 gaslimit;
 }
 
 // A post request as a leaf in a merkle tree
@@ -114,9 +117,18 @@ struct PostTimeout {
     PostRequest request;
 }
 
-struct PostTimeoutMessage {
+struct PostRequestTimeoutMessage {
     // requests which have timed-out
     PostRequest[] timeouts;
+    // the height of the state machine proof
+    StateMachineHeight height;
+    // non-membership proof of the requests
+    bytes[] proof;
+}
+
+struct PostResponseTimeoutMessage {
+    // responses which have timed-out
+    PostResponse[] timeouts;
     // the height of the state machine proof
     StateMachineHeight height;
     // non-membership proof of the requests
@@ -143,6 +155,8 @@ struct DispatchPost {
     uint64 timeout;
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
+    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
+    uint256 amount;
 }
 
 // An object for dispatching get requests to the IsmpDispatcher
@@ -157,6 +171,21 @@ struct DispatchGet {
     uint64 timeout;
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
+    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
+    uint256 amount;
+}
+
+struct DispatchPostResponse {
+    // The request that initiated this response
+    PostRequest request;
+    // bytes for post response
+    bytes response;
+    // timestamp by which this response times out.
+    uint64 timeoutTimestamp;
+    // gas limit for executing this response on destination which is the source of the request.
+    uint64 gaslimit;
+    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
+    uint256 amount;
 }
 
 // The core ISMP API, IIsmpModules use this interface to send outgoing get/post requests & responses
@@ -168,37 +197,16 @@ interface IIsmp {
     function dispatch(DispatchPost memory request) external;
 
     /**
-     * @dev Dispatch a POST request to the ISMP router and pay for a relayer.
-     * The amount provided is charged to tx.origin in $DAI.
-     * @param request - post request
-     */
-    function dispatch(DispatchPost memory request, uint256 amount) external;
-
-    /**
      * @dev Dispatch a GET request to the ISMP router.
      * @param request - get request
      */
     function dispatch(DispatchGet memory request) external;
 
     /**
-     * @dev Dispatch a GET request to the ISMP router and pay for a relayer.
-     * The amount provided is charged to tx.origin in $DAI.
-     * @param request - get request
-     */
-    function dispatch(DispatchGet memory request, uint256 amount) external;
-
-    /**
      * @dev Provide a response to a previously received request.
      * @param response - post response
      */
     function dispatch(PostResponse memory response) external;
-
-    /**
-     * @dev Provide a response to a previously received request.
-     * The amount provided is charged to tx.origin in $DAI.
-     * @param response - post response
-     */
-    function dispatch(PostResponse memory response, uint256 amount) external;
 }
 
 library Message {
@@ -209,10 +217,13 @@ library Message {
                 res.request.dest,
                 res.request.nonce,
                 res.request.timeoutTimestamp,
-                res.request.body,
                 res.request.from,
                 res.request.to,
-                res.response
+                res.request.body,
+                res.request.gaslimit,
+                res.response,
+                res.timeoutTimestamp,
+                res.gaslimit
             )
         );
     }
@@ -240,23 +251,6 @@ library Message {
     }
 
     function hash(GetResponse memory res) internal pure returns (bytes32) {
-        bytes memory keysEncoding = abi.encode(res.request.keys);
-        bytes memory preimage = abi.encodePacked(
-            res.request.source,
-            res.request.dest,
-            res.request.nonce,
-            res.request.height,
-            res.request.timeoutTimestamp,
-            res.request.from,
-            keysEncoding,
-            res.request.gaslimit
-        );
-        uint256 len = res.values.length;
-        for (uint256 i = 0; i < len; i++) {
-            StorageValue memory entry = res.values[i];
-            preimage = bytes.concat(preimage, abi.encodePacked(entry.key, entry.value));
-        }
-
-        return keccak256(preimage);
+        return hash(res.request);
     }
 }

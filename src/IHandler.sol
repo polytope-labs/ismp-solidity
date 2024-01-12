@@ -1,8 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "./IIsmpHost.sol";
-import "./IIsmp.sol";
+import {IIsmpHost} from "./IIsmpHost.sol";
+import {
+    PostRequestMessage,
+    PostResponseMessage,
+    GetResponseMessage,
+    PostRequestTimeoutMessage,
+    PostResponseTimeoutMessage,
+    GetTimeoutMessage
+} from "./IIsmp.sol";
 
 /*
     The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
@@ -43,12 +50,19 @@ interface IHandler {
      * @param host - Ismp host
      * @param message - batch post request timeouts
      */
-    function handlePostTimeouts(IIsmpHost host, PostTimeoutMessage memory message) external;
+    function handlePostRequestTimeouts(IIsmpHost host, PostRequestTimeoutMessage memory message) external;
+
+    /**
+     * @dev check timeout proofs then dispatch to modules
+     * @param host - Ismp host
+     * @param message - batch post response timeouts
+     */
+    function handlePostResponseTimeouts(IIsmpHost host, PostResponseTimeoutMessage memory message) external;
 
     /**
      * @dev dispatch to modules
      * @param host - Ismp host
      * @param message - batch get request timeouts
      */
-    function handleGetTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external;
+    function handleGetRequestTimeouts(IIsmpHost host, GetTimeoutMessage memory message) external;
 }
