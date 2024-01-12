@@ -210,24 +210,6 @@ interface IIsmp {
 }
 
 library Message {
-    function hash(PostResponse memory res) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                res.request.source,
-                res.request.dest,
-                res.request.nonce,
-                res.request.timeoutTimestamp,
-                res.request.from,
-                res.request.to,
-                res.request.body,
-                res.request.gaslimit,
-                res.response,
-                res.timeoutTimestamp,
-                res.gaslimit
-            )
-        );
-    }
-
     function timeout(PostRequest memory req) internal pure returns (uint64) {
         if (req.timeoutTimestamp == 0) {
             return type(uint64).max;
@@ -252,12 +234,20 @@ library Message {
         }
     }
 
-    function hash(PostRequest memory req) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
-            )
+    function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
         );
+    }
+
+    function hash(PostResponse memory res) internal pure returns (bytes32) {
+        return keccak256(
+            bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp, res.gaslimit))
+        );
+    }
+
+    function hash(PostRequest memory req) internal pure returns (bytes32) {
+        return keccak256(encodeRequest(req));
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
