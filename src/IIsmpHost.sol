@@ -5,7 +5,7 @@ import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IIsmp, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmp.sol";
 
 // Some metadata about the request
-struct RequestMetadata {
+struct FeeMetadata {
     // the relayer fee
     uint256 fee;
     // user who initiated the request
@@ -78,8 +78,8 @@ interface IIsmpHost is IIsmp {
     function requestReceipts(bytes32 commitment) external returns (bool);
 
     /**
-     * @param commitment - commitment to the response
-     * @return existence status of an incoming response commitment
+     * @param commitment - commitment to the request of the response
+     * @return existence of a response to the request
      */
     function responseReceipts(bytes32 commitment) external returns (bool);
 
@@ -87,13 +87,13 @@ interface IIsmpHost is IIsmp {
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (RequestMetadata memory);
+    function requestCommitments(bytes32 commitment) external returns (FeeMetadata memory);
 
     /**
      * @param commitment - commitment to the response
      * @return existence status of an outgoing response commitment
      */
-    function responseCommitments(bytes32 commitment) external returns (bool);
+    function responseCommitments(bytes32 commitment) external returns (FeeMetadata memory);
 
     /**
      * @return the challenge period
@@ -160,17 +160,17 @@ interface IIsmpHost is IIsmp {
      * @dev Dispatch an incoming get timeout to source module
      * @param timeout - timed-out get request
      */
-    function dispatchIncoming(GetRequest memory timeout, RequestMetadata memory meta, bytes32 commitment) external;
+    function dispatchIncoming(GetRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 
     /**
      * @dev Dispatch an incoming post timeout to source module
      * @param timeout - timed-out post request
      */
-    function dispatchIncoming(PostRequest memory timeout, RequestMetadata memory meta, bytes32 commitment) external;
+    function dispatchIncoming(PostRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 
     /**
      * @dev Dispatch an incoming post response timeout to source module
      * @param timeout - timed-out post response
      */
-    function dispatchIncoming(PostResponse memory timeout, RequestMetadata memory meta, bytes32 commitment) external;
+    function dispatchIncoming(PostResponse memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 }

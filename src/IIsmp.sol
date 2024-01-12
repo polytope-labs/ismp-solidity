@@ -156,7 +156,7 @@ struct DispatchPost {
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
-    uint256 amount;
+    uint256 fee;
 }
 
 // An object for dispatching get requests to the IsmpDispatcher
@@ -172,7 +172,7 @@ struct DispatchGet {
     // gas limit for executing this request on destination & its response (if any) on the source.
     uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
-    uint256 amount;
+    uint256 fee;
 }
 
 struct DispatchPostResponse {
@@ -180,12 +180,12 @@ struct DispatchPostResponse {
     PostRequest request;
     // bytes for post response
     bytes response;
-    // timestamp by which this response times out.
-    uint64 timeoutTimestamp;
+    // timeout for this response in seconds
+    uint64 timeout;
     // gas limit for executing this response on destination which is the source of the request.
     uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
-    uint256 amount;
+    uint256 fee;
 }
 
 // The core ISMP API, IIsmpModules use this interface to send outgoing get/post requests & responses
@@ -206,34 +206,48 @@ interface IIsmp {
      * @dev Provide a response to a previously received request.
      * @param response - post response
      */
-    function dispatch(PostResponse memory response) external;
+    function dispatch(DispatchPostResponse memory response) external;
 }
 
 library Message {
+    function timeout(PostRequest memory req) internal pure returns (uint64) {
+        if (req.timeoutTimestamp == 0) {
+            return type(uint64).max;
+        } else {
+            return req.timeoutTimestamp;
+        }
+    }
+
+    function timeout(GetRequest memory req) internal pure returns (uint64) {
+        if (req.timeoutTimestamp == 0) {
+            return type(uint64).max;
+        } else {
+            return req.timeoutTimestamp;
+        }
+    }
+
+    function timeout(PostResponse memory res) internal pure returns (uint64) {
+        if (res.timeoutTimestamp == 0) {
+            return type(uint64).max;
+        } else {
+            return res.timeoutTimestamp;
+        }
+    }
+
+    function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
+        );
+    }
+
     function hash(PostResponse memory res) internal pure returns (bytes32) {
         return keccak256(
-            abi.encodePacked(
-                res.request.source,
-                res.request.dest,
-                res.request.nonce,
-                res.request.timeoutTimestamp,
-                res.request.from,
-                res.request.to,
-                res.request.body,
-                res.request.gaslimit,
-                res.response,
-                res.timeoutTimestamp,
-                res.gaslimit
-            )
+            bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp, res.gaslimit))
         );
     }
 
     function hash(PostRequest memory req) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
-            )
-        );
+        return keccak256(encodeRequest(req));
     }
 
     function hash(GetRequest memory req) internal pure returns (bytes32) {
