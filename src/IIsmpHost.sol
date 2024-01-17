@@ -80,27 +80,15 @@ interface IIsmpHost is IIsmp {
 
     /**
      * @param commitment - commitment to the request
-     * @return relayer addrress
+     * @return relayer address
      */
-    function requestReceiptData(bytes32 commitment) external returns (address);
+    function requestReceipts(bytes32 commitment) external returns (address);
 
     /**
      * @param commitment - commitment to the request of the response
-     * @return response receipt data
+     * @return response receipt
      */
-    function responseReceiptData(bytes32 commitment) external returns (ResponseReceipt memory);
-
-    /**
-     * @param commitment - commitment to the request
-     * @return existence status of an incoming request commitment
-     */
-    function requestReceipts(bytes32 commitment) external returns (bool);
-
-    /**
-     * @param commitment - commitment to the request of the response
-     * @return existence of a response to the request
-     */
-    function responseReceipts(bytes32 commitment) external returns (bool);
+    function responseReceipts(bytes32 commitment) external returns (ResponseReceipt memory);
 
     /**
      * @param commitment - commitment to the request
