@@ -12,6 +12,13 @@ struct FeeMetadata {
     address sender;
 }
 
+struct ResponseReceipt {
+    // commitment of the response object
+    bytes32 responseCommitment;
+    // address of the relayer responsible for this response delivery
+    address relayer;
+}
+
 interface IIsmpHost is IIsmp {
     /**
      * @return the host admin
@@ -73,15 +80,15 @@ interface IIsmpHost is IIsmp {
 
     /**
      * @param commitment - commitment to the request
-     * @return existence status of an incoming request commitment
+     * @return relayer address
      */
-    function requestReceipts(bytes32 commitment) external returns (bool);
+    function requestReceipts(bytes32 commitment) external returns (address);
 
     /**
      * @param commitment - commitment to the request of the response
-     * @return existence of a response to the request
+     * @return response receipt
      */
-    function responseReceipts(bytes32 commitment) external returns (bool);
+    function responseReceipts(bytes32 commitment) external returns (ResponseReceipt memory);
 
     /**
      * @param commitment - commitment to the request
