@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import {PostRequest, PostResponse, GetResponse, GetRequest} from "./IIsmp.sol";
+import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
 
 interface IIsmpModule {
     /**
@@ -39,4 +39,31 @@ interface IIsmpModule {
      * @param request get request
      */
     function onGetTimeout(GetRequest memory request) external;
+}
+
+/// Abstract contract to make implementing `IIsmpModule` easier.
+abstract contract BaseIsmpModule is IIsmpModule {
+    function onAccept(PostRequest calldata) external virtual {
+        revert("IsmpModule doesn't expect Post requests");
+    }
+
+    function onPostRequestTimeout(PostRequest memory) external virtual {
+        revert("IsmpModule doesn't emit Post requests");
+    }
+
+    function onPostResponse(PostResponse memory) external virtual {
+        revert("IsmpModule doesn't emit Post responses");
+    }
+
+    function onPostResponseTimeout(PostResponse memory) external virtual {
+        revert("IsmpModule doesn't emit Post responses");
+    }
+
+    function onGetResponse(GetResponse memory) external virtual {
+        revert("IsmpModule doesn't emit Get requests");
+    }
+
+    function onGetTimeout(GetRequest memory) external virtual {
+        revert("IsmpModule doesn't emit Get requests");
+    }
 }

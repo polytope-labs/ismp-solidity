@@ -2,7 +2,8 @@
 pragma solidity 0.8.17;
 
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
-import {IIsmp, PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./IIsmp.sol";
+import {IDispatcher} from "./IDispatcher.sol";
+import {PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./Message.sol";
 
 // Some metadata about the request
 struct FeeMetadata {
@@ -19,7 +20,7 @@ struct ResponseReceipt {
     address relayer;
 }
 
-interface IIsmpHost is IIsmp {
+interface IIsmpHost is IDispatcher {
     /**
      * @return the host admin
      */
@@ -28,22 +29,27 @@ interface IIsmpHost is IIsmp {
     /**
      * @return the address of the DAI ERC-20 contract on this state machine
      */
-    function dai() external returns (address);
+    function dai() external view returns (address);
+
+    /**
+     * @return the per-byte fee for outgoing requests.
+     */
+    function perByteFee() external view returns (uint256);
 
     /**
      * @return the host state machine id
      */
-    function host() external returns (bytes memory);
+    function host() external view returns (bytes memory);
 
     /**
      * @return the host timestamp
      */
-    function timestamp() external returns (uint256);
+    function timestamp() external view returns (uint256);
 
     /**
      * @return the `frozen` status
      */
-    function frozen() external returns (bool);
+    function frozen() external view returns (bool);
 
     /**
      * @param height - state machine height
@@ -61,56 +67,56 @@ interface IIsmpHost is IIsmp {
      * @dev Should return a handle to the consensus client based on the id
      * @return the consensus client contract
      */
-    function consensusClient() external returns (address);
+    function consensusClient() external view returns (address);
 
     /**
      * @return the last updated time of the consensus client
      */
-    function consensusUpdateTime() external returns (uint256);
+    function consensusUpdateTime() external view returns (uint256);
 
     /**
      * @return the latest state machine height
      */
-    function latestStateMachineHeight() external returns (uint256);
+    function latestStateMachineHeight() external view returns (uint256);
 
     /**
      * @return the state of the consensus client
      */
-    function consensusState() external returns (bytes memory);
+    function consensusState() external view returns (bytes memory);
 
     /**
      * @param commitment - commitment to the request
      * @return relayer address
      */
-    function requestReceipts(bytes32 commitment) external returns (address);
+    function requestReceipts(bytes32 commitment) external view returns (address);
 
     /**
      * @param commitment - commitment to the request of the response
      * @return response receipt
      */
-    function responseReceipts(bytes32 commitment) external returns (ResponseReceipt memory);
+    function responseReceipts(bytes32 commitment) external view returns (ResponseReceipt memory);
 
     /**
      * @param commitment - commitment to the request
      * @return existence status of an outgoing request commitment
      */
-    function requestCommitments(bytes32 commitment) external returns (FeeMetadata memory);
+    function requestCommitments(bytes32 commitment) external view returns (FeeMetadata memory);
 
     /**
      * @param commitment - commitment to the response
      * @return existence status of an outgoing response commitment
      */
-    function responseCommitments(bytes32 commitment) external returns (FeeMetadata memory);
+    function responseCommitments(bytes32 commitment) external view returns (FeeMetadata memory);
 
     /**
      * @return the challenge period
      */
-    function challengePeriod() external returns (uint256);
+    function challengePeriod() external view returns (uint256);
 
     /**
      * @return the unstaking period
      */
-    function unStakingPeriod() external returns (uint256);
+    function unStakingPeriod() external view returns (uint256);
 
     /**
      * @dev Store an encoded consensus state
