@@ -9,7 +9,7 @@ import {
     PostRequestTimeoutMessage,
     PostResponseTimeoutMessage,
     GetTimeoutMessage
-} from "./IIsmp.sol";
+} from "./Message.sol";
 
 /*
     The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
