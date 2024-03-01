@@ -19,7 +19,7 @@ struct DispatchPost {
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
-    address payee;
+    address payer;
 }
 
 // An object for dispatching get requests to the IsmpDispatcher
@@ -37,7 +37,7 @@ struct DispatchGet {
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
-    address payee;
+    address payer;
 }
 
 struct DispatchPostResponse {
@@ -52,7 +52,7 @@ struct DispatchPostResponse {
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
-    address payee;
+    address payer;
 }
 
 // The core ISMP API, IIsmpModules use this interface to send outgoing get/post requests & responses
