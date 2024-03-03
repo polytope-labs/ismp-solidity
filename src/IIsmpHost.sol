@@ -167,7 +167,7 @@ interface IIsmpHost is IDispatcher {
      * @dev Dispatch an incoming get response to source module
      * @param response - get response
      */
-    function dispatchIncoming(GetResponse memory response) external;
+    function dispatchIncoming(GetResponse memory response, FeeMetadata memory meta) external;
 
     /**
      * @dev Dispatch an incoming get timeout to source module
