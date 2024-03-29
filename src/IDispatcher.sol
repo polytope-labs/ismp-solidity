@@ -14,8 +14,6 @@ struct DispatchPost {
     bytes body;
     // timeout for this request in seconds
     uint64 timeout;
-    // gas limit for executing this request on destination & its response (if any) on the source.
-    uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
@@ -32,8 +30,6 @@ struct DispatchGet {
     bytes[] keys;
     // timeout for this request in seconds
     uint64 timeout;
-    // gas limit for executing this request on destination & its response (if any) on the source.
-    uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
@@ -47,8 +43,6 @@ struct DispatchPostResponse {
     bytes response;
     // timeout for this response in seconds
     uint64 timeout;
-    // gas limit for executing this response on destination which is the source of the request.
-    uint64 gaslimit;
     // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
     uint256 fee;
     // who pays for this request?
