@@ -27,9 +27,9 @@ interface IIsmpHost is IDispatcher {
     function admin() external returns (address);
 
     /**
-     * @return the address of the DAI ERC-20 contract on this state machine
+     * @return the address of the fee token ERC-20 contract on this state machine
      */
-    function dai() external view returns (address);
+    function feeToken() external view returns (address);
 
     /**
      * @return the per-byte fee for outgoing requests.
