@@ -19,8 +19,6 @@ struct PostRequest {
     uint64 timeoutTimestamp;
     // request body
     bytes body;
-    // gas limit for executing this request on destination & its response (if any) on the source.
-    uint64 gaslimit;
 }
 
 struct GetRequest {
@@ -38,8 +36,6 @@ struct GetRequest {
     bytes[] keys;
     // height at which to read destination state machine
     uint64 height;
-    // gas limit for executing this request on destination
-    uint64 gaslimit;
 }
 
 struct GetResponse {
@@ -56,8 +52,6 @@ struct PostResponse {
     bytes response;
     // timestamp by which this response times out.
     uint64 timeoutTimestamp;
-    // gas limit for executing this response on destination which is the source of the request.
-    uint64 gaslimit;
 }
 
 // A post request as a leaf in a merkle tree
@@ -170,13 +164,13 @@ library Message {
 
     function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
         return abi.encodePacked(
-            req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body, req.gaslimit
+            req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body
         );
     }
 
     function hash(PostResponse memory res) internal pure returns (bytes32) {
         return keccak256(
-            bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp, res.gaslimit))
+            bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp))
         );
     }
 
@@ -193,7 +187,7 @@ library Message {
 
         return keccak256(
             abi.encodePacked(
-                req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding, req.gaslimit
+                req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding
             )
         );
     }
