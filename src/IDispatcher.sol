@@ -60,18 +60,21 @@ interface IDispatcher {
     /**
      * @dev Dispatch a post request to the ISMP router.
      * @param request - post request
+     * @return commitment - the request commitment
      */
-    function dispatch(DispatchPost memory request) external;
+    function dispatch(DispatchPost memory request) external returns (bytes32 commitment);
 
     /**
      * @dev Dispatch a GET request to the ISMP router.
      * @param request - get request
+     * @return commitment - the request commitment
      */
-    function dispatch(DispatchGet memory request) external;
+    function dispatch(DispatchGet memory request) external returns (bytes32 commitment);
 
     /**
      * @dev Provide a response to a previously received request.
      * @param response - post response
+     * @return commitment - the request commitment
      */
-    function dispatch(DispatchPostResponse memory response) external;
+    function dispatch(DispatchPostResponse memory response) external returns (bytes32 commitment);
 }
