@@ -30,10 +30,8 @@ struct DispatchGet {
     bytes[] keys;
     // timeout for this request in seconds
     uint64 timeout;
-    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
-    uint256 fee;
-    // who pays for this request?
-    address payer;
+    // The initiator of this request
+    address sender;
 }
 
 struct DispatchPostResponse {

@@ -163,15 +163,11 @@ library Message {
     }
 
     function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
-        return abi.encodePacked(
-            req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body
-        );
+        return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body);
     }
 
     function hash(PostResponse memory res) internal pure returns (bytes32) {
-        return keccak256(
-            bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp))
-        );
+        return keccak256(bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp)));
     }
 
     function hash(PostRequest memory req) internal pure returns (bytes32) {
@@ -186,9 +182,7 @@ library Message {
         }
 
         return keccak256(
-            abi.encodePacked(
-                req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding
-            )
+            abi.encodePacked(req.source, req.dest, req.nonce, req.height, req.timeoutTimestamp, req.from, keysEncoding)
         );
     }
 

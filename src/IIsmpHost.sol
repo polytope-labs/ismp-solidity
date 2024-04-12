@@ -5,7 +5,7 @@ import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IDispatcher} from "./IDispatcher.sol";
 import {PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./Message.sol";
 
-// Some metadata about the request
+// Some metadata about the request fee
 struct FeeMetadata {
     // the relayer fee
     uint256 fee;
@@ -155,19 +155,19 @@ interface IIsmpHost is IDispatcher {
      * @dev Dispatch an incoming request to destination module
      * @param request - post request
      */
-    function dispatchIncoming(PostRequest memory request) external;
+    function dispatchIncoming(PostRequest memory request, address relayer) external;
 
     /**
      * @dev Dispatch an incoming post response to source module
      * @param response - post response
      */
-    function dispatchIncoming(PostResponse memory response) external;
+    function dispatchIncoming(PostResponse memory response, address relayer) external;
 
     /**
      * @dev Dispatch an incoming get response to source module
      * @param response - get response
      */
-    function dispatchIncoming(GetResponse memory response, FeeMetadata memory meta) external;
+    function dispatchIncoming(GetResponse memory response, address relayer) external;
 
     /**
      * @dev Dispatch an incoming get timeout to source module
