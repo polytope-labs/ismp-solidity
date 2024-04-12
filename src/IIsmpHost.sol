@@ -75,9 +75,9 @@ interface IIsmpHost is IDispatcher {
     function consensusUpdateTime() external view returns (uint256);
 
     /**
-     * @return the latest state machine height
+     * @return the latest state machine height for the given stateMachineId. If it returns 0, the state machine is unsupported.
      */
-    function latestStateMachineHeight() external view returns (uint256);
+    function latestStateMachineHeight(uint256 stateMachineId) external view returns (uint256);
 
     /**
      * @return the state of the consensus client
@@ -125,31 +125,12 @@ interface IIsmpHost is IDispatcher {
     function storeConsensusState(bytes memory state) external;
 
     /**
-     * @dev Store the timestamp when the consensus client was updated
-     * @param timestamp - new timestamp
-     */
-    function storeConsensusUpdateTime(uint256 timestamp) external;
-
-    /**
-     * @dev Store the latest state machine height
-     * @param height State Machine Height
-     */
-    function storeLatestStateMachineHeight(uint256 height) external;
-
-    /**
      * @dev Store the commitment at `state height`
      * @param height state machine height
      * @param commitment state commitment
      */
     function storeStateMachineCommitment(StateMachineHeight memory height, StateCommitment memory commitment)
         external;
-
-    /**
-     * @dev Store the timestamp when the state machine was updated
-     * @param height state machine height
-     * @param timestamp new timestamp
-     */
-    function storeStateMachineCommitmentUpdateTime(StateMachineHeight memory height, uint256 timestamp) external;
 
     /**
      * @dev Dispatch an incoming request to destination module
