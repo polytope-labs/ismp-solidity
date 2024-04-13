@@ -3,24 +3,45 @@ pragma solidity 0.8.17;
 
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
 
+struct IncomingPostRequest {
+    // The Post request
+    PostRequest request;
+    // Relayer responsible for delivering the request
+    address relayer;
+}
+
+struct IncomingPostResponse {
+    // The Post response
+    PostResponse response;
+    // Relayer responsible for delivering the response
+    address relayer;
+}
+
+struct IncomingGetResponse {
+    // The Get response
+    GetResponse response;
+    // Relayer responsible for delivering the response
+    address relayer;
+}
+
 interface IIsmpModule {
     /**
      * @dev Called by the IsmpHost to notify a module of a new request the module may choose to respond immediately, or in a later block
-     * @param request post request
+     * @param incoming post request
      */
-    function onAccept(PostRequest memory request) external;
+    function onAccept(IncomingPostRequest memory incoming) external;
 
     /**
      * @dev Called by the IsmpHost to notify a module of a post response to a previously sent out request
-     * @param response post response
+     * @param incoming post response
      */
-    function onPostResponse(PostResponse memory response) external;
+    function onPostResponse(IncomingPostResponse memory incoming) external;
 
     /**
      * @dev Called by the IsmpHost to notify a module of a get response to a previously sent out request
-     * @param response get response
+     * @param incoming get response
      */
-    function onGetResponse(GetResponse memory response) external;
+    function onGetResponse(IncomingGetResponse memory incoming) external;
 
     /**
      * @dev Called by the IsmpHost to notify a module of post requests that were previously sent but have now timed-out
@@ -43,7 +64,7 @@ interface IIsmpModule {
 
 /// Abstract contract to make implementing `IIsmpModule` easier.
 abstract contract BaseIsmpModule is IIsmpModule {
-    function onAccept(PostRequest calldata) external virtual {
+    function onAccept(IncomingPostRequest calldata) external virtual {
         revert("IsmpModule doesn't expect Post requests");
     }
 
@@ -51,7 +72,7 @@ abstract contract BaseIsmpModule is IIsmpModule {
         revert("IsmpModule doesn't emit Post requests");
     }
 
-    function onPostResponse(PostResponse memory) external virtual {
+    function onPostResponse(IncomingPostResponse memory) external virtual {
         revert("IsmpModule doesn't emit Post responses");
     }
 
@@ -59,7 +80,7 @@ abstract contract BaseIsmpModule is IIsmpModule {
         revert("IsmpModule doesn't emit Post responses");
     }
 
-    function onGetResponse(GetResponse memory) external virtual {
+    function onGetResponse(IncomingGetResponse memory) external virtual {
         revert("IsmpModule doesn't emit Get requests");
     }
 
