@@ -133,6 +133,11 @@ interface IIsmpHost is IDispatcher {
         external;
 
     /**
+     * @dev Delete the state commitment at given state height alongside relevant metadata. Assumes the state commitment is of the latest height.
+     */
+    function deleteStateMachineCommitment(StateMachineHeight memory height) external;
+
+    /**
      * @dev Dispatch an incoming request to destination module
      * @param request - post request
      */
