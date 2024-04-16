@@ -20,6 +20,8 @@ struct ResponseReceipt {
     address relayer;
 }
 
+// The IsmpHost is the core of the interoperable state machine protocol which encapsulates the interfaces
+// required for handlers and modules.
 interface IIsmpHost is IDispatcher {
     /**
      * @return the host admin
@@ -40,6 +42,11 @@ interface IIsmpHost is IDispatcher {
      * @return the host state machine id
      */
     function host() external view returns (bytes memory);
+
+    /**
+     * @return the state machine identifier for the connected hyperbridge instance
+     */
+    function hyperbridge() external view returns (bytes memory);
 
     /**
      * @return the host timestamp
