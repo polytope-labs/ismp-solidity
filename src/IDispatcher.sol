@@ -32,6 +32,8 @@ struct DispatchGet {
     uint64 timeout;
     // The initiator of this request
     address sender;
+    // Hyperbridge protocol fees for processing this request.
+    uint256 fee;
 }
 
 struct DispatchPostResponse {
