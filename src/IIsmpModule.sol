@@ -64,27 +64,59 @@ interface IIsmpModule {
 
 /// Abstract contract to make implementing `IIsmpModule` easier.
 abstract contract BaseIsmpModule is IIsmpModule {
-    function onAccept(IncomingPostRequest calldata) external virtual {
-        revert("IsmpModule doesn't expect Post requests");
+    // Chain is not supported
+    error UnsupportedChain();
+
+    // Call was not expected
+    error UnexpectedCall();
+
+    // Action is unauthorized
+    error UnauthorizedAction();
+
+    modifier onlyHost() {
+        if (msg.sender != host()) revert UnauthorizedAction();
+        _;
     }
 
-    function onPostRequestTimeout(PostRequest memory) external virtual {
-        revert("IsmpModule doesn't emit Post requests");
+    function host() internal view returns (address h) {
+        assembly {
+            switch chainid()
+            // Ethereum Sepolia
+            case 11155111 { h := 0xbDFa473d7E483e088348e071480B624A248b2fC4 }
+            // Arbitrum Sepolia
+            case 421614 { h := 0xC98976841a69Ce52d4D17B286A1698963E847982 }
+            // Optimism Sepolia
+            case 11155420 { h := 0x0D811D581D615AA44A36aa638825403F9b434E18 }
+            // Base Sepolia
+            case 84532 { h := 0x7FaBb96851517583eA7df7d6e9Dd28afc2fA38f5 }
+            // Binance Smart Chain Testnet
+            case 97 { h := 0xE6bd95737DD35Fd0e5f134771A832405671f06e9 }
+        }
+
+        if (h == address(0)) revert UnsupportedChain();
     }
 
-    function onPostResponse(IncomingPostResponse memory) external virtual {
-        revert("IsmpModule doesn't emit Post responses");
+    function onAccept(IncomingPostRequest calldata) external virtual onlyHost {
+        revert UnexpectedCall();
     }
 
-    function onPostResponseTimeout(PostResponse memory) external virtual {
-        revert("IsmpModule doesn't emit Post responses");
+    function onPostRequestTimeout(PostRequest memory) external virtual onlyHost {
+        revert UnexpectedCall();
     }
 
-    function onGetResponse(IncomingGetResponse memory) external virtual {
-        revert("IsmpModule doesn't emit Get requests");
+    function onPostResponse(IncomingPostResponse memory) external virtual onlyHost {
+        revert UnexpectedCall();
     }
 
-    function onGetTimeout(GetRequest memory) external virtual {
-        revert("IsmpModule doesn't emit Get requests");
+    function onPostResponseTimeout(PostResponse memory) external virtual onlyHost {
+        revert UnexpectedCall();
+    }
+
+    function onGetResponse(IncomingGetResponse memory) external virtual onlyHost {
+        revert UnexpectedCall();
+    }
+
+    function onGetTimeout(GetRequest memory) external virtual onlyHost {
+        revert UnexpectedCall();
     }
 }

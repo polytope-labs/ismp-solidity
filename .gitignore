@@ -13,3 +13,4 @@ broadcast/
 target/
 .cargo/
 .idea
+.vscode/
