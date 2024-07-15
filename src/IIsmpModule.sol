@@ -70,15 +70,17 @@ abstract contract BaseIsmpModule is IIsmpModule {
     // Call was not expected
     error UnexpectedCall();
 
-    // Action is unauthorized
-    error UnauthorizedAction();
+    // Account is unauthorized
+    error UnauthorizedAccount();
 
     modifier onlyHost() {
-        if (msg.sender != host()) revert UnauthorizedAction();
+        if (msg.sender != host()) revert UnauthorizedAccount();
         _;
     }
 
-    function host() internal view returns (address h) {
+    // Returns the IsmpHost address for the current chain. The IsmpHost is an immutable
+    // contract that will never change.
+    function hostAddr() internal view returns (address h) {
         assembly {
             switch chainid()
             // Ethereum Sepolia

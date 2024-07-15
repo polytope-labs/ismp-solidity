@@ -46,4 +46,24 @@ library StateMachine {
     function bsc() internal pure returns (bytes memory) {
         return bytes("BSC");
     }
+
+    // Address the Blast state machine
+    function blast() internal pure returns (bytes memory) {
+        return bytes("BLST");
+    }
+
+    // Address the Mantle machine
+    function mantle() internal pure returns (bytes memory) {
+        return bytes("MNTL");
+    }
+
+    // Address the Manta machine
+    function manta() internal pure returns (bytes memory) {
+        return bytes("MNTA");
+    }
+
+    // Address the Build on Bitcoin machine
+    function bob() internal pure returns (bytes memory) {
+        return bytes("BOB");
+    }
 }
