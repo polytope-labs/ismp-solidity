@@ -1,14 +1,16 @@
 # ismp-solidity
 
-[ISMP](https://github.com/polytope-labs/ismp) protocol specification for EVM environments.
+[ISMP](https://docs.hyperbridge.network/protocol/ismp) protocol specification for EVM environments.
 
 ## Interface
 
- - [`IConsensusClient`](src/IConsensusClient.sol)
- - [`IHandler`](src/IHandler.sol)
- - [`IIsmpHost`](src/IIsmpHost.sol)
- - [`IIsmp`](src/IIsmp.sol)
- - [`IIsmpModule`](src/IIsmpModule.sol)
+ - [`IIsmpHost`](src/IIsmpHost.sol) The ISMP Host interface
+ - [`IDispatcher`](src/IDispatcher.sol) The ISMP Dispatcher interface
+ - [`IHandler`](src/IHandler.sol) The ISMP Handler interface
+ - [`IConsensusClient`](src/IConsensusClient.sol) The ConsensusClient interface
+ - [`IIsmpModule`](src/IIsmpModule.sol) The ISMP Module interface
+ - [`StateMachine`](src/StateMachine.sol) The State machine definitions
+ - [`Message`](src/Message.sol) The protocol message types
 
 
 ## License
