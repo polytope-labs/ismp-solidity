@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import {StateMachineHeight} from "./IConsensusClient.sol";
 import {PostRequest} from "./Message.sol";
 
-// An object for dispatching post requests to the IsmpDispatcher
+// @notice An object for dispatching post requests to the Hyperbridge
 struct DispatchPost {
     // bytes representation of the destination state machine
     bytes dest;
@@ -14,24 +14,23 @@ struct DispatchPost {
     bytes body;
     // timeout for this request in seconds
     uint64 timeout;
-    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
+    // the amount put up to be paid to the relayer, 
+    // this is charged in `IIsmpHost.feeToken` to `msg.sender` 
     uint256 fee;
     // who pays for this request?
     address payer;
 }
 
-// An object for dispatching get requests to the IsmpDispatcher
+// @notice An object for dispatching get requests to the Hyperbridge
 struct DispatchGet {
     // bytes representation of the destination state machine
     bytes dest;
     // height at which to read the state machine
     uint64 height;
-    // Storage keys to read
+    // storage keys to read
     bytes[] keys;
     // timeout for this request in seconds
     uint64 timeout;
-    // The initiator of this request
-    address sender;
     // Hyperbridge protocol fees for processing this request.
     uint256 fee;
 }
@@ -43,7 +42,8 @@ struct DispatchPostResponse {
     bytes response;
     // timeout for this response in seconds
     uint64 timeout;
-    // the amount put up to be paid to the relayer, this is in $DAI and charged to tx.origin
+    // the amount put up to be paid to the relayer, 
+    // this is charged in `IIsmpHost.feeToken` to `msg.sender` 
     uint256 fee;
     // who pays for this request?
     address payer;
