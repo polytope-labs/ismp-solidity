@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
+import {DispatchPost, DispatchPostResponse} from "./IDispatcher.sol";
+import {IIsmpHost} from "./IIsmpHost.sol";
 
 struct IncomingPostRequest {
     // The Post request
@@ -26,74 +28,87 @@ struct IncomingGetResponse {
 
 interface IIsmpModule {
     /**
-     * @dev Called by the IsmpHost to notify a module of a new request the module may choose to respond immediately, or in a later block
+     * @dev Called by the `IsmpHost` to notify a module of a new request the module may choose to respond immediately, or in a later block
      * @param incoming post request
      */
     function onAccept(IncomingPostRequest memory incoming) external;
 
     /**
-     * @dev Called by the IsmpHost to notify a module of a post response to a previously sent out request
+     * @dev Called by the `IsmpHost` to notify a module of a post response to a previously sent out request
      * @param incoming post response
      */
     function onPostResponse(IncomingPostResponse memory incoming) external;
 
     /**
-     * @dev Called by the IsmpHost to notify a module of a get response to a previously sent out request
+     * @dev Called by the `IsmpHost` to notify a module of a get response to a previously sent out request
      * @param incoming get response
      */
     function onGetResponse(IncomingGetResponse memory incoming) external;
 
     /**
-     * @dev Called by the IsmpHost to notify a module of post requests that were previously sent but have now timed-out
+     * @dev Called by the `IsmpHost` to notify a module of post requests that were previously sent but have now timed-out
      * @param request post request
      */
     function onPostRequestTimeout(PostRequest memory request) external;
 
     /**
-     * @dev Called by the IsmpHost to notify a module of post requests that were previously sent but have now timed-out
+     * @dev Called by the `IsmpHost` to notify a module of post requests that were previously sent but have now timed-out
      * @param request post request
      */
     function onPostResponseTimeout(PostResponse memory request) external;
 
     /**
-     * @dev Called by the IsmpHost to notify a module of get requests that were previously sent but have now timed-out
+     * @dev Called by the `IsmpHost` to notify a module of get requests that were previously sent but have now timed-out
      * @param request get request
      */
     function onGetTimeout(GetRequest memory request) external;
 }
 
-/// Abstract contract to make implementing `IIsmpModule` easier.
+// @notice Abstract contract to make implementing `IIsmpModule` easier.
 abstract contract BaseIsmpModule is IIsmpModule {
-    // Chain is not supported
+    // @notice Chain is not supported
     error UnsupportedChain();
 
-    // Call was not expected
+    // @notice Call was not expected
     error UnexpectedCall();
 
-    // Action is unauthorized
-    error UnauthorizedAction();
+    // @notice Account is unauthorized
+    error UnauthorizedAccount();
 
+    // @dev restricts caller to the local `IsmpHost`
     modifier onlyHost() {
-        if (msg.sender != host()) revert UnauthorizedAction();
+        if (msg.sender != hostAddr()) revert UnauthorizedAccount();
         _;
     }
 
-    function host() internal view returns (address h) {
+    // @dev Returns the `IsmpHost` address for the current chain. 
+    // The `IsmpHost` is an immutable contract that will never change.
+    function hostAddr() internal view returns (address h) {
         assembly {
             switch chainid()
             // Ethereum Sepolia
-            case 11155111 { h := 0xbDFa473d7E483e088348e071480B624A248b2fC4 }
+            case 11155111 { h := 0x4175a96bd787a2C196e732a1244630650607fdC2 }
             // Arbitrum Sepolia
-            case 421614 { h := 0xC98976841a69Ce52d4D17B286A1698963E847982 }
+            case 421614 { h := 0xC8A9288BF705A238c3d96C76499F4A4E1d96c800 }
             // Optimism Sepolia
-            case 11155420 { h := 0x0D811D581D615AA44A36aa638825403F9b434E18 }
+            case 11155420 { h := 0xB9Ffd43C720A695d40C14896494c1461f3fBb8A7 }
             // Base Sepolia
-            case 84532 { h := 0x7FaBb96851517583eA7df7d6e9Dd28afc2fA38f5 }
+            case 84532 { h := 0xc76c16539877C0c38c18E815E449Ff4855DA11d4 }
             // Binance Smart Chain Testnet
-            case 97 { h := 0xE6bd95737DD35Fd0e5f134771A832405671f06e9 }
+            case 97 { h := 0x698Ea102d14dF1F9a4C3A76fE5DCEEeFcfd27f85 }
         }
 
         if (h == address(0)) revert UnsupportedChain();
+    }
+
+    // @dev returns the quoted fee for a dispatch
+    function quoteFee(DispatchPost memory post) internal view returns (uint256) {
+    	return post.body.length * IIsmpHost(hostAddr()).perByteFee();
+    }
+
+    // @dev returns the quoted fee for a dispatch
+    function quoteFee(DispatchPostResponse memory res) internal view returns (uint256) {
+    	return res.response.length * IIsmpHost(hostAddr()).perByteFee();
     }
 
     function onAccept(IncomingPostRequest calldata) external virtual onlyHost {
