@@ -81,21 +81,21 @@ abstract contract BaseIsmpModule is IIsmpModule {
         _;
     }
 
-    // @dev Returns the `IsmpHost` address for the current chain. 
+    // @dev Returns the `IsmpHost` address for the current chain.
     // The `IsmpHost` is an immutable contract that will never change.
     function hostAddr() internal view returns (address h) {
         assembly {
             switch chainid()
             // Ethereum Sepolia
-            case 11155111 { h := 0x4175a96bd787a2C196e732a1244630650607fdC2 }
+            case 11155111 { h := 0xF0be651F382cd794aaB1b83584aA458B756bd4cF }
             // Arbitrum Sepolia
-            case 421614 { h := 0xC8A9288BF705A238c3d96C76499F4A4E1d96c800 }
+            case 421614 { h := 0x7da46FB3b77B34eF6eCf055915ACb1D46565fB41 }
             // Optimism Sepolia
-            case 11155420 { h := 0xB9Ffd43C720A695d40C14896494c1461f3fBb8A7 }
+            case 11155420 { h := 0x8Ac39DfC1F2616e5e19B93420C6d008a8a8EE65f }
             // Base Sepolia
-            case 84532 { h := 0xc76c16539877C0c38c18E815E449Ff4855DA11d4 }
+            case 84532 { h := 0xf8Dba4EB00621c57787634F8dEBDDb188BC7238E }
             // Binance Smart Chain Testnet
-            case 97 { h := 0x698Ea102d14dF1F9a4C3A76fE5DCEEeFcfd27f85 }
+            case 97 { h := 0xa3F07C94A7E6cD9367a2E0C0F4247eB2AC467C86 }
         }
 
         if (h == address(0)) revert UnsupportedChain();
