@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@polytope-labs/solidity-merkle-trees@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@polytope-labs/solidity-merkle-trees/-/solidity-merkle-trees-0.2.1.tgz#7c3399c071ee246df92f37b8cebc9f545a915917"
+  integrity sha512-aoJbZXWgIDgvwWEXQL3cEqFAXdTzaOxo3r373LMOtm8W/v9RnRNVW/gplWQGVZs+tvdwGP9Sp6ToKknIIPwQ5g==
+
 "@solidity-parser/parser@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.17.0.tgz#52a2fcc97ff609f72011014e4c5b485ec52243ef"
