@@ -113,5 +113,5 @@ interface IDispatcher {
 	 * @param response - post response
 	 * @return commitment - the request commitment
 	 */
-	function dispatchWithNative(DispatchPostResponse memory request) external payable returns (bytes32 commitment);
+	function dispatchWithNative(DispatchPostResponse memory response) external payable returns (bytes32 commitment);
 }
