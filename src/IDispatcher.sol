@@ -114,4 +114,47 @@ interface IDispatcher {
 	 * @return commitment - the request commitment
 	 */
 	function dispatchWithNative(DispatchPostResponse memory response) external payable returns (bytes32 commitment);
+
+	/**
+	 * @dev Increase the relayer fee for a previously dispatched request using the `IIsmpHost.feeToken()`
+	 * This is provided for use only on pending requests, such that when they timeout,
+	 * the user can recover the entire relayer fee.
+	 *
+	 * If called on an already delivered request, these funds will be seen as a donation to the hyperbridge protocol.
+	 * @param commitment - The request commitment
+	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
+	 */
+	function fundRequest(bytes32 commitment, uint256 amount) external;
+
+	/**
+	 * @dev Increase the relayer fee for a previously dispatched request using the native token.
+	 * This is provided for use only on pending requests, such that when they timeout,
+	 * the user can recover the entire relayer fee.
+	 *
+	 * If called on an already delivered request, these funds will be seen as a donation to the hyperbridge protocol.
+	 * @param commitment - The request commitment
+	 */
+	function fundRequestWithNative(bytes32 commitment) external payable;
+
+	/**
+	 * @dev Increase the relayer fee for a previously dispatched response using the `IIsmpHost.feeToken()`
+	 * This is provided for use only on pending responses, such that when they timeout,
+	 * the user can recover the entire relayer fee.
+	 *
+	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
+	 * @param commitment - The response commitment
+	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
+	 */
+	function fundResponse(bytes32 commitment, uint256 amount) external;
+
+	/**
+	 * @dev Increase the relayer fee for a previously dispatched response using the native token
+	 * This is provided for use only on pending responses, such that when they timeout,
+	 * the user can recover the entire relayer fee.
+	 *
+	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
+	 * @param commitment - The response commitment
+	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
+	 */
+	function fundResponse(bytes32 commitment) external payable;
 }
