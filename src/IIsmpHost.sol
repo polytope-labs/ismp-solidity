@@ -45,7 +45,7 @@ interface IIsmpHost is IDispatcher {
 	function feeToken() external view returns (address);
 
 	/**
-	 * @return the per-byte fee for outgoing requests.
+	 * @return the per-byte fee for outgoing messages.
 	 */
 	function perByteFee() external view returns (uint256);
 
@@ -87,7 +87,6 @@ interface IIsmpHost is IDispatcher {
 	function stateMachineCommitmentUpdateTime(StateMachineHeight memory height) external returns (uint256);
 
 	/**
-	 * @dev Should return a handle to the consensus client based on the id
 	 * @return the consensus client contract
 	 */
 	function consensusClient() external view returns (address);
@@ -181,17 +180,17 @@ interface IIsmpHost is IDispatcher {
 	 * @dev Dispatch an incoming get timeout to source module
 	 * @param timeout - timed-out get request
 	 */
-	function dispatchIncoming(GetRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
+	function dispatchTimeOut(GetRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 
 	/**
 	 * @dev Dispatch an incoming post timeout to source module
 	 * @param timeout - timed-out post request
 	 */
-	function dispatchIncoming(PostRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
+	function dispatchTimeOut(PostRequest memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 
 	/**
 	 * @dev Dispatch an incoming post response timeout to source module
 	 * @param timeout - timed-out post response
 	 */
-	function dispatchIncoming(PostResponse memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
+	function dispatchTimeOut(PostResponse memory timeout, FeeMetadata memory meta, bytes32 commitment) external;
 }
