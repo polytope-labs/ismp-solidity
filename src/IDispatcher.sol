@@ -54,26 +54,64 @@ struct DispatchPostResponse {
  * @author Polytope Labs (hello@polytope.technology)
  *
  * @notice The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
-*/
+ */
 interface IDispatcher {
 	/**
-	 * @dev Dispatch a post request to the ISMP router.
+	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
+	 * @return routerAddress - The address to the in-use RouterV02 implementation
+	 */
+	function uniswapV2Router() external view returns (address routerAddress);
+
+	/**
+	 * @dev Dispatch a POST request to Hyperbridge
 	 * @param request - post request
 	 * @return commitment - the request commitment
 	 */
 	function dispatch(DispatchPost memory request) external returns (bytes32 commitment);
 
 	/**
-	 * @dev Dispatch a GET request to the ISMP router.
+	 * @dev Dispatch a GET request to Hyperbridge
+	 *
 	 * @param request - get request
 	 * @return commitment - the request commitment
 	 */
 	function dispatch(DispatchGet memory request) external returns (bytes32 commitment);
 
 	/**
-	 * @dev Provide a response to a previously received request.
+	 * @dev Dispatch a POST response to Hyperbridge
+	 *
 	 * @param response - post response
 	 * @return commitment - the request commitment
 	 */
 	function dispatch(DispatchPostResponse memory response) external returns (bytes32 commitment);
+
+	/**
+	 * @dev Dispatch a POST request to Hyperbridge and pay for it with the native token.
+	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
+	 * native tokens are not provided.
+	 *
+	 * @param request - post request
+	 * @return commitment - the request commitment
+	 */
+	function dispatchWithNative(DispatchPost memory request) external payable returns (bytes32 commitment);
+
+	/**
+	 * @dev Dispatch a GET request to Hyperbridge and pay for it with the native token.
+	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
+	 * native tokens are not provided.
+	 *
+	 * @param request - get request
+	 * @return commitment - the request commitment
+	 */
+	function dispatchWithNative(DispatchGet memory request) external payable returns (bytes32 commitment);
+
+	/**
+	 * @dev Dispatch a POST response to Hyperbridge and pay for it with the native token.
+	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
+	 * native tokens are not provided.
+	 *
+	 * @param response - post response
+	 * @return commitment - the request commitment
+	 */
+	function dispatchWithNative(DispatchPostResponse memory request) external payable returns (bytes32 commitment);
 }

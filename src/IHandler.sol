@@ -9,7 +9,7 @@ import {PostRequestMessage, PostResponseMessage, GetResponseMessage, PostRequest
  * @author Polytope Labs (hello@polytope.technology)
  *
  * @notice The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
-*/
+ */
 interface IHandler {
 	/**
 	 * @dev Handle an incoming consensus message. This uses the IConsensusClient contract registered on the host to perform the consensus message verification.
