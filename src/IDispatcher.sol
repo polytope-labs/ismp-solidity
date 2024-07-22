@@ -133,8 +133,9 @@ interface IDispatcher {
 	 *
 	 * If called on an already delivered request, these funds will be seen as a donation to the hyperbridge protocol.
 	 * @param commitment - The request commitment
+	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
 	 */
-	function fundRequestWithNative(bytes32 commitment) external payable;
+	function fundRequestWithNative(bytes32 commitment, uint256 amount) external payable;
 
 	/**
 	 * @dev Increase the relayer fee for a previously dispatched response using the `IIsmpHost.feeToken()`
@@ -143,7 +144,7 @@ interface IDispatcher {
 	 *
 	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
 	 * @param commitment - The response commitment
-	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
+	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
 	 */
 	function fundResponse(bytes32 commitment, uint256 amount) external;
 
@@ -154,7 +155,7 @@ interface IDispatcher {
 	 *
 	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
 	 * @param commitment - The response commitment
-	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
+	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
 	 */
-	function fundResponse(bytes32 commitment) external payable;
+	function fundResponseWithNative(bytes32 commitment, uint256 amount) external payable;
 }
