@@ -70,6 +70,12 @@ interface IIsmpHost is IDispatcher {
 	function frozen() external view returns (bool);
 
 	/**
+	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
+	 * @return routerAddress - The address to the in-use RouterV02 implementation
+	 */
+	function uniswapV2Router() external view returns (address);
+
+	/**
 	 * @param height - state machine height
 	 * @return the state commitment at `height`
 	 */

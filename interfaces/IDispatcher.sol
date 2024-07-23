@@ -57,12 +57,6 @@ struct DispatchPostResponse {
  */
 interface IDispatcher {
 	/**
-	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
-	 * @return routerAddress - The address to the in-use RouterV02 implementation
-	 */
-	function uniswapV2Router() external view returns (address routerAddress);
-
-	/**
 	 * @dev Dispatch a POST request to Hyperbridge
 	 *
 	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
