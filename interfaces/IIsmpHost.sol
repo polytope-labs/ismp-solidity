@@ -76,19 +76,9 @@ interface IIsmpHost is IDispatcher {
 
 	/**
 	 * @param height - state machine height
-	 * @notice collects the state commitment fee in the `feeToken()`
 	 * @return the state commitment at `height`
 	 */
-	function stateCommitment(StateMachineHeight memory height) external returns (StateCommitment memory);
-
-	/**
-	 * @param height - state machine height
-	 * @notice collects the state commitment fee in the native tokens
-	 * @return the state commitment at `height`
-	 */
-	function stateCommitmentWithNative(
-		StateMachineHeight memory height
-	) external payable returns (StateCommitment memory);
+	function stateMachineCommitment(StateMachineHeight memory height) external view returns (StateCommitment memory);
 
 	/**
 	 * @param height - state machine height
