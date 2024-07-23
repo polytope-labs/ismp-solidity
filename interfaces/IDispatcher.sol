@@ -64,98 +64,82 @@ interface IDispatcher {
 
 	/**
 	 * @dev Dispatch a POST request to Hyperbridge
+	 *
+	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
+	 * Will revert if enough native tokens are not provided.
+	 *
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
+	 *
 	 * @param request - post request
 	 * @return commitment - the request commitment
 	 */
-	function dispatch(DispatchPost memory request) external returns (bytes32 commitment);
+	function dispatch(DispatchPost memory request) external payable returns (bytes32 commitment);
 
 	/**
 	 * @dev Dispatch a GET request to Hyperbridge
 	 *
+	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
+	 * Will revert if enough native tokens are not provided.
+	 *
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
+	 *
 	 * @param request - get request
 	 * @return commitment - the request commitment
 	 */
-	function dispatch(DispatchGet memory request) external returns (bytes32 commitment);
+	function dispatch(DispatchGet memory request) external payable returns (bytes32 commitment);
 
 	/**
 	 * @dev Dispatch a POST response to Hyperbridge
 	 *
-	 * @param response - post response
-	 * @return commitment - the request commitment
-	 */
-	function dispatch(DispatchPostResponse memory response) external returns (bytes32 commitment);
-
-	/**
-	 * @dev Dispatch a POST request to Hyperbridge and pay for it with the native token.
-	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
-	 * native tokens are not provided.
+	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
+	 * Will revert if enough native tokens are not provided.
 	 *
-	 * @param request - post request
-	 * @return commitment - the request commitment
-	 */
-	function dispatchWithNative(DispatchPost memory request) external payable returns (bytes32 commitment);
-
-	/**
-	 * @dev Dispatch a GET request to Hyperbridge and pay for it with the native token.
-	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
-	 * native tokens are not provided.
-	 *
-	 * @param request - get request
-	 * @return commitment - the request commitment
-	 */
-	function dispatchWithNative(DispatchGet memory request) external payable returns (bytes32 commitment);
-
-	/**
-	 * @dev Dispatch a POST response to Hyperbridge and pay for it with the native token.
-	 * Performs a swap under the hood using the local uniswap router. Will revert if enough
-	 * native tokens are not provided.
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
 	 *
 	 * @param response - post response
 	 * @return commitment - the request commitment
 	 */
-	function dispatchWithNative(DispatchPostResponse memory response) external payable returns (bytes32 commitment);
+	function dispatch(DispatchPostResponse memory response) external payable returns (bytes32 commitment);
 
 	/**
-	 * @dev Increase the relayer fee for a previously dispatched request using the `IIsmpHost.feeToken()`
+	 * @dev Increase the relayer fee for a previously dispatched request.
 	 * This is provided for use only on pending requests, such that when they timeout,
 	 * the user can recover the entire relayer fee.
+	 *
+	 * @notice Payment can either be made with the native token or the IIsmpHost.feeToken.
+	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
+	 * Will revert if enough native tokens are not provided.
+	 *
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
 	 *
 	 * If called on an already delivered request, these funds will be seen as a donation to the hyperbridge protocol.
 	 * @param commitment - The request commitment
 	 * @param amount - The amount provided in `IIsmpHost.feeToken()`
 	 */
-	function fundRequest(bytes32 commitment, uint256 amount) external;
+	function fundRequest(bytes32 commitment, uint256 amount) external payable;
 
 	/**
-	 * @dev Increase the relayer fee for a previously dispatched request using the native token.
-	 * This is provided for use only on pending requests, such that when they timeout,
-	 * the user can recover the entire relayer fee.
-	 *
-	 * If called on an already delivered request, these funds will be seen as a donation to the hyperbridge protocol.
-	 * @param commitment - The request commitment
-	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
-	 */
-	function fundRequestWithNative(bytes32 commitment, uint256 amount) external payable;
-
-	/**
-	 * @dev Increase the relayer fee for a previously dispatched response using the `IIsmpHost.feeToken()`
+	 * @dev Increase the relayer fee for a previously dispatched response.
 	 * This is provided for use only on pending responses, such that when they timeout,
 	 * the user can recover the entire relayer fee.
+	 *
+	 * @notice Payment can either be made with the native token or the IIsmpHost.feeToken.
+	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
+	 * Will revert if enough native tokens are not provided.
+	 *
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
 	 *
 	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
 	 * @param commitment - The response commitment
 	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
 	 */
-	function fundResponse(bytes32 commitment, uint256 amount) external;
-
-	/**
-	 * @dev Increase the relayer fee for a previously dispatched response using the native token
-	 * This is provided for use only on pending responses, such that when they timeout,
-	 * the user can recover the entire relayer fee.
-	 *
-	 * If called on an already delivered response, these funds will be seen as a donation to the hyperbridge protocol.
-	 * @param commitment - The response commitment
-	 * @param amount - The amount to be provided in `IIsmpHost.feeToken()`
-	 */
-	function fundResponseWithNative(bytes32 commitment, uint256 amount) external payable;
+	function fundResponse(bytes32 commitment, uint256 amount) external payable;
 }
