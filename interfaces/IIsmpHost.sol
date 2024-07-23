@@ -70,11 +70,6 @@ interface IIsmpHost is IDispatcher {
 	function frozen() external view returns (bool);
 
 	/**
-	 * @return the fee for accessing hyperbridge state commitments charged in `feeToken()`
-	 */
-	function stateCommitmentFee() external view returns (uint256);
-
-	/**
 	 * @param height - state machine height
 	 * @return the state commitment at `height`
 	 */
