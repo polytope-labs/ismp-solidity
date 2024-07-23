@@ -59,7 +59,7 @@ interface IDispatcher {
 	/**
 	 * @dev Dispatch a POST request to Hyperbridge
 	 *
-	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * @notice Payment for the request can be made with either the native token or the IIsmpHost.feeToken.
 	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
 	 * Will revert if enough native tokens are not provided.
 	 *
@@ -74,7 +74,7 @@ interface IDispatcher {
 	/**
 	 * @dev Dispatch a GET request to Hyperbridge
 	 *
-	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * @notice Payment for the request can be made with either the native token or the IIsmpHost.feeToken.
 	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
 	 * Will revert if enough native tokens are not provided.
 	 *
@@ -89,7 +89,7 @@ interface IDispatcher {
 	/**
 	 * @dev Dispatch a POST response to Hyperbridge
 	 *
-	 * @notice Payment for the request can either be made with the native token or the IIsmpHost.feeToken.
+	 * @notice Payment for the request can be made with either the native token or the IIsmpHost.feeToken.
 	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
 	 * Will revert if enough native tokens are not provided.
 	 *
@@ -106,7 +106,7 @@ interface IDispatcher {
 	 * This is provided for use only on pending requests, such that when they timeout,
 	 * the user can recover the entire relayer fee.
 	 *
-	 * @notice Payment can either be made with the native token or the IIsmpHost.feeToken.
+	 * @notice Payment can be made with either the native token or the IIsmpHost.feeToken.
 	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
 	 * Will revert if enough native tokens are not provided.
 	 *
@@ -124,7 +124,7 @@ interface IDispatcher {
 	 * This is provided for use only on pending responses, such that when they timeout,
 	 * the user can recover the entire relayer fee.
 	 *
-	 * @notice Payment can either be made with the native token or the IIsmpHost.feeToken.
+	 * @notice Payment can be made with either the native token or the IIsmpHost.feeToken.
 	 * If native tokens are supplied, it will perform a swap under the hood using the local uniswap router.
 	 * Will revert if enough native tokens are not provided.
 	 *

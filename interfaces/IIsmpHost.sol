@@ -79,7 +79,7 @@ interface IIsmpHost is IDispatcher {
 	 * @param height - state machine height
 	 * @return the state commitment at `height`
 	 */
-	function stateMachineCommitment(StateMachineHeight memory height) external view returns (StateCommitment memory);
+	function stateMachineCommitment(StateMachineHeight memory height) external payable returns (StateCommitment memory);
 
 	/**
 	 * @param height - state machine height
