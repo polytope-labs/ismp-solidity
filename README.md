@@ -4,13 +4,13 @@
 
 ## Interface
 
- - [`IIsmpHost`](src/IIsmpHost.sol) The ISMP Host interface
- - [`IDispatcher`](src/IDispatcher.sol) The ISMP Dispatcher interface
- - [`IHandler`](src/IHandler.sol) The ISMP Handler interface
- - [`IConsensusClient`](src/IConsensusClient.sol) The ConsensusClient interface
- - [`IIsmpModule`](src/IIsmpModule.sol) The ISMP Module interface
- - [`StateMachine`](src/StateMachine.sol) The State machine definitions
- - [`Message`](src/Message.sol) The protocol message types
+ - [`IIsmpHost`](interfaces/IIsmpHost.sol) The ISMP Host interface
+ - [`IDispatcher`](interfaces/IDispatcher.sol) The ISMP Dispatcher interface
+ - [`IHandler`](interfaces/IHandler.sol) The ISMP Handler interface
+ - [`IConsensusClient`](interfaces/IConsensusClient.sol) The ConsensusClient interface
+ - [`IIsmpModule`](interfaces/IIsmpModule.sol) The ISMP Module interface
+ - [`StateMachine`](interfaces/StateMachine.sol) The State machine definitions
+ - [`Message`](interfaces/Message.sol) The protocol message types
 
 
 ## License
