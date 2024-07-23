@@ -76,6 +76,13 @@ interface IIsmpHost is IDispatcher {
 	function uniswapV2Router() external view returns (address);
 
 	/**
+	 * @notice Charges the stateCommitmentFee to 3rd party applications.
+	 * If native tokens are provided, will attempt to swap them for the stateCommitmentFee.
+	 * If not enough native tokens are supplied, will revert.
+	 *
+	 * If no native tokens are provided then it will try to collect payment from the calling contract in
+	 * the IIsmpHost.feeToken.
+	 *
 	 * @param height - state machine height
 	 * @return the state commitment at `height`
 	 */
