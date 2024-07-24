@@ -70,6 +70,12 @@ interface IIsmpHost is IDispatcher {
      */
     function nonce() external view returns (uint256);
 
+    /**
+     * @dev Returns the fisherman responsible for vetoing the given state machine height.
+     * @return the `fisherman` address
+     */
+    function vetoes(uint256 paraId, uint256 height) external view returns (address);
+
 	/**
 	 * @return the `frozen` status
 	 */
