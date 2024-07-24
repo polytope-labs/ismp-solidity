@@ -68,7 +68,7 @@ interface IIsmpHost is IDispatcher {
      * @dev Returns the nonce immediately available for requests
      * @return the `nonce`
      */
-    function nonce() external view returns (uint256)
+    function nonce() external view returns (uint256);
 
 	/**
 	 * @return the `frozen` status
