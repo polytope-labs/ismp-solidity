@@ -76,6 +76,12 @@ interface IIsmpHost is IDispatcher {
 	function uniswapV2Router() external view returns (address);
 
 	/**
+	 * @dev Returns the fee required for 3rd party applications to access hyperbridge state commitments.
+	 * @return the `stateCommitmentFee`
+	 */
+	function stateCommitmentFee() external view returns (uint256);
+
+	/**
 	 * @notice Charges the stateCommitmentFee to 3rd party applications.
 	 * If native tokens are provided, will attempt to swap them for the stateCommitmentFee.
 	 * If not enough native tokens are supplied, will revert.
