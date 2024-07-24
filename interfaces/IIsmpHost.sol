@@ -20,6 +20,18 @@ struct ResponseReceipt {
 	address relayer;
 }
 
+// Various frozen states of the IIsmpHost
+enum FrozenStatus {
+	// Host is operating normally
+	None,
+	// Host is currently disallowing incoming datagrams
+	Incoming,
+	// Host is currently disallowing outgoing messages
+	Outgoing,
+	// All actions have been frozen
+	All
+}
+
 /**
  * @title The Ismp Host Interface
  * @author Polytope Labs (hello@polytope.technology)
@@ -64,22 +76,22 @@ interface IIsmpHost is IDispatcher {
 	 */
 	function timestamp() external view returns (uint256);
 
-    /**
-     * @dev Returns the nonce immediately available for requests
-     * @return the `nonce`
-     */
-    function nonce() external view returns (uint256);
+	/**
+	 * @dev Returns the nonce immediately available for requests
+	 * @return the `nonce`
+	 */
+	function nonce() external view returns (uint256);
 
-    /**
-     * @dev Returns the fisherman responsible for vetoing the given state machine height.
-     * @return the `fisherman` address
-     */
-    function vetoes(uint256 paraId, uint256 height) external view returns (address);
+	/**
+	 * @dev Returns the fisherman responsible for vetoing the given state machine height.
+	 * @return the `fisherman` address
+	 */
+	function vetoes(uint256 paraId, uint256 height) external view returns (address);
 
 	/**
 	 * @return the `frozen` status
 	 */
-	function frozen() external view returns (bool);
+	function frozen() external view returns (FrozenStatus);
 
 	/**
 	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
@@ -132,11 +144,11 @@ interface IIsmpHost is IDispatcher {
 	 */
 	function consensusState() external view returns (bytes memory);
 
-    /**
-     * @dev Check the response status for a given request.
-     * @return `response` status
-     */
-    function responded(bytes32 commitment) external view returns (bool);
+	/**
+	 * @dev Check the response status for a given request.
+	 * @return `response` status
+	 */
+	function responded(bytes32 commitment) external view returns (bool);
 
 	/**
 	 * @param commitment - commitment to the request
@@ -171,6 +183,12 @@ interface IIsmpHost is IDispatcher {
 	 * @return the unstaking period
 	 */
 	function unStakingPeriod() external view returns (uint256);
+
+	/**
+	 * @dev set the new frozen state of the host, only the admin or handler can call this.
+	 * @param newState - the new frozen state
+	 */
+	function setFrozenState(FrozenStatus newState) external;
 
 	/**
 	 * @dev Store an encoded consensus state

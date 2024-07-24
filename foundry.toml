@@ -1,5 +1,4 @@
 [profile.default]
-src = 'src'
+src = 'interfaces'
 out = 'out'
 libs = ['lib']
-
