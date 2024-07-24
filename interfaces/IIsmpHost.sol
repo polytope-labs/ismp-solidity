@@ -120,6 +120,12 @@ interface IIsmpHost is IDispatcher {
 	 */
 	function consensusState() external view returns (bytes memory);
 
+    /**
+     * @dev Check the response status for a given request.
+     * @return `response` status
+     */
+    function responded(bytes32 commitment) external view returns (bool);
+
 	/**
 	 * @param commitment - commitment to the request
 	 * @return relayer address
