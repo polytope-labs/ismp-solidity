@@ -19,22 +19,7 @@ library StateMachine {
 
 	// @notice Address the ethereum "execution layer"
 	function ethereum() internal pure returns (bytes memory) {
-		return bytes("ETHE");
-	}
-
-	// @notice Address the Arbitrum state machine
-	function arbitrum() internal pure returns (bytes memory) {
-		return bytes("ARBI");
-	}
-
-	// @notice Address the Optimism state machine
-	function optimism() internal pure returns (bytes memory) {
-		return bytes("OPTI");
-	}
-
-	// @notice Address the Base state machine
-	function base() internal pure returns (bytes memory) {
-		return bytes("BASE");
+		return bytes("ETH-EXEC");
 	}
 
 	// @notice Address the Polygon POS state machine
@@ -47,23 +32,38 @@ library StateMachine {
 		return bytes("BSC");
 	}
 
+	// @notice Address the Arbitrum state machine
+	function arbitrum() internal pure returns (bytes memory) {
+		return bytes("ETH-ARBI");
+	}
+
+	// @notice Address the Optimism state machine
+	function optimism() internal pure returns (bytes memory) {
+		return bytes("ETH-OPTI");
+	}
+
+	// @notice Address the Base state machine
+	function base() internal pure returns (bytes memory) {
+		return bytes("ETH-BASE");
+	}
+
 	// @notice Address the Blast state machine
 	function blast() internal pure returns (bytes memory) {
-		return bytes("BLST");
+		return bytes("ETH-BLST");
 	}
 
 	// @notice Address the Mantle machine
 	function mantle() internal pure returns (bytes memory) {
-		return bytes("MNTL");
+		return bytes("ETH-MNTL");
 	}
 
 	// @notice Address the Manta machine
 	function manta() internal pure returns (bytes memory) {
-		return bytes("MNTA");
+		return bytes("ETH-MNTA");
 	}
 
 	// @notice Address the Build on Bitcoin machine
 	function bob() internal pure returns (bytes memory) {
-		return bytes("BOB");
+		return bytes("ETH-BOB");
 	}
 }
