@@ -1,5 +1,8 @@
 # ismp-solidity
 
+![Unit Tests](https://github.com/polytope-labs/ismp-solidity/actions/workflows/test.yml/badge.svg)
+[![NPM](https://img.shields.io/npm/v/@polytope-labs/ismp-solidity?label=%40polytope-labs%2Fismp-solidity)](https://www.npmjs.com/package/@polytope-labs/ismp-solidity)
+
 [ISMP](https://docs.hyperbridge.network/protocol/ismp) protocol specification for EVM environments.
 
 ## Interface
