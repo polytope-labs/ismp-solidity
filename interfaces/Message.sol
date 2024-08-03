@@ -12,9 +12,9 @@ struct PostRequest {
 	// request nonce
 	uint64 nonce;
 	// Module Id of this request origin
-	bytes from;
+	address from;
 	// destination module id
-	address to;
+	bytes to;
 	// timestamp by which this request times out.
 	uint64 timeoutTimestamp;
 	// request body
