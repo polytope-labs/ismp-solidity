@@ -14,7 +14,7 @@ struct PostRequest {
 	// Module Id of this request origin
 	bytes from;
 	// destination module id
-	bytes to;
+	address to;
 	// timestamp by which this request times out.
 	uint64 timeoutTimestamp;
 	// request body
@@ -29,7 +29,7 @@ struct GetRequest {
 	// request nonce
 	uint64 nonce;
 	// Module Id of this request origin
-	bytes from;
+	address from;
 	// timestamp by which this request times out.
 	uint64 timeoutTimestamp;
 	// Storage keys to read.
@@ -163,7 +163,7 @@ library Message {
 	}
 
 	function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
-		return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body);
+		return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, abi.encodePacked(req.from), req.to, req.body);
 	}
 
 	function hash(PostResponse memory res) internal pure returns (bytes32) {
@@ -190,7 +190,7 @@ library Message {
 					req.nonce,
 					req.height,
 					req.timeoutTimestamp,
-					req.from,
+					abi.encodePacked(req.from),
 					keysEncoding
 				)
 			);
