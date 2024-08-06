@@ -94,12 +94,10 @@ struct PostRequestMessage {
 
 // A message for handling incoming GET responses
 struct GetResponseMessage {
-	// the state (merkle-patricia) proof of the get request keys
-	bytes[] proof;
-	// the height of the state machine proof
-	StateMachineHeight height;
+	// proof for the responses
+	Proof proof;
 	// The requests that initiated this response
-	GetRequest[] requests;
+	GetResponse[] requests;
 }
 
 struct GetTimeoutMessage {
@@ -162,20 +160,11 @@ library Message {
 		}
 	}
 
-	function encodeRequest(PostRequest memory req) internal pure returns (bytes memory) {
+	function encode(PostRequest memory req) internal pure returns (bytes memory) {
 		return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body);
 	}
 
-	function hash(PostResponse memory res) internal pure returns (bytes32) {
-		return
-			keccak256(bytes.concat(encodeRequest(res.request), abi.encodePacked(res.response, res.timeoutTimestamp)));
-	}
-
-	function hash(PostRequest memory req) internal pure returns (bytes32) {
-		return keccak256(encodeRequest(req));
-	}
-
-	function hash(GetRequest memory req) internal pure returns (bytes32) {
+	function encode(GetRequest memory req) internal pure returns (bytes memory) {
 		bytes memory keysEncoding = bytes("");
 		uint256 len = req.keys.length;
 		for (uint256 i = 0; i < len; i++) {
@@ -183,20 +172,35 @@ library Message {
 		}
 
 		return
-			keccak256(
-				abi.encodePacked(
-					req.source,
-					req.dest,
-					req.nonce,
-					req.height,
-					req.timeoutTimestamp,
-					abi.encodePacked(req.from),
-					keysEncoding
-				)
+			abi.encodePacked(
+				req.source,
+				req.dest,
+				req.nonce,
+				req.height,
+				req.timeoutTimestamp,
+				abi.encodePacked(req.from),
+				keysEncoding
 			);
 	}
 
+	function hash(PostResponse memory res) internal pure returns (bytes32) {
+		return keccak256(bytes.concat(encode(res.request), abi.encodePacked(res.response, res.timeoutTimestamp)));
+	}
+
+	function hash(PostRequest memory req) internal pure returns (bytes32) {
+		return keccak256(encode(req));
+	}
+
+	function hash(GetRequest memory req) internal pure returns (bytes32) {
+		return keccak256(encode(req));
+	}
+
 	function hash(GetResponse memory res) internal pure returns (bytes32) {
-		return hash(res.request);
+		bytes memory response = bytes("");
+		uint256 len = res.values.length;
+		for (uint256 i = 0; i < len; i++) {
+			response = bytes.concat(response, bytes.concat(res.values[i].key, res.values[i].value));
+		}
+		return keccak256(bytes.concat(encode(res.request), response));
 	}
 }
