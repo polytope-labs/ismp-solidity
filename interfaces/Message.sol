@@ -88,7 +88,7 @@ struct Proof {
 struct PostRequestMessage {
 	// proof for the requests
 	Proof proof;
-	// the requests, contained in a merkle tree leaf
+	// The requests, contained in the merkle mountain range tree
 	PostRequestLeaf[] requests;
 }
 
@@ -96,8 +96,8 @@ struct PostRequestMessage {
 struct GetResponseMessage {
 	// proof for the responses
 	Proof proof;
-	// The requests that initiated this response
-	GetResponse[] requests;
+	// The responses, contained in the merkle mountain range tree
+	GetResponse[] responses;
 }
 
 struct GetTimeoutMessage {
