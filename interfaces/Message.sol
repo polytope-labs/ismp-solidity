@@ -74,6 +74,16 @@ struct PostResponseLeaf {
 	uint256 kIndex;
 }
 
+// A get response as a leaf in a merkle mountain range tree
+struct GetResponseLeaf {
+	// The response
+	GetResponse response;
+	// It's index in the mmr leaves
+	uint256 index;
+	// it's k-index
+	uint256 kIndex;
+}
+
 // A merkle mountain range proof.
 struct Proof {
 	// height of the state machine
@@ -97,7 +107,7 @@ struct GetResponseMessage {
 	// proof for the responses
 	Proof proof;
 	// The responses, contained in the merkle mountain range tree
-	GetResponse[] responses;
+	GetResponseLeaf[] responses;
 }
 
 struct GetTimeoutMessage {
@@ -136,6 +146,9 @@ struct PostResponseMessage {
 }
 
 library Message {
+	/**
+	* @dev Calculates the absolute timeout value for a PostRequest
+	*/
 	function timeout(PostRequest memory req) internal pure returns (uint64) {
 		if (req.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -144,6 +157,9 @@ library Message {
 		}
 	}
 
+	/**
+	* @dev Calculates the absolute timeout value for a GetRequest
+	*/
 	function timeout(GetRequest memory req) internal pure returns (uint64) {
 		if (req.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -152,6 +168,9 @@ library Message {
 		}
 	}
 
+	/**
+	* @dev Calculates the absolute timeout value for a PostResponse
+	*/
 	function timeout(PostResponse memory res) internal pure returns (uint64) {
 		if (res.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -160,10 +179,16 @@ library Message {
 		}
 	}
 
+	/**
+	* @dev Encode the given post request for commitment
+	*/
 	function encode(PostRequest memory req) internal pure returns (bytes memory) {
 		return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body);
 	}
 
+	/**
+	* @dev Encode the given get request for commitment
+	*/
 	function encode(GetRequest memory req) internal pure returns (bytes memory) {
 		bytes memory keysEncoding = bytes("");
 		uint256 len = req.keys.length;
@@ -183,18 +208,30 @@ library Message {
 			);
 	}
 
+	/**
+	* @dev Returns the commitment for the given post response
+	*/
 	function hash(PostResponse memory res) internal pure returns (bytes32) {
 		return keccak256(bytes.concat(encode(res.request), abi.encodePacked(res.response, res.timeoutTimestamp)));
 	}
 
+	/**
+	* @dev Returns the commitment for the given post request
+	*/
 	function hash(PostRequest memory req) internal pure returns (bytes32) {
 		return keccak256(encode(req));
 	}
 
+	/**
+	* @dev Returns the commitment for the given get request
+	*/
 	function hash(GetRequest memory req) internal pure returns (bytes32) {
 		return keccak256(encode(req));
 	}
 
+	/**
+	* @dev Returns the commitment for the given get response
+	*/
 	function hash(GetResponse memory res) internal pure returns (bytes32) {
 		bytes memory response = bytes("");
 		uint256 len = res.values.length;
