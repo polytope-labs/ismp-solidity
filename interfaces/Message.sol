@@ -113,10 +113,10 @@ struct GetResponseMessage {
 struct GetTimeoutMessage {
 	// requests which have timed-out
 	GetRequest[] timeouts;
-}
-
-struct PostTimeout {
-	PostRequest request;
+	// the height of the state machine proof
+	StateMachineHeight height;
+	// non-membership proof of the requests
+	bytes[] proof;
 }
 
 struct PostRequestTimeoutMessage {
@@ -147,8 +147,8 @@ struct PostResponseMessage {
 
 library Message {
 	/**
-	* @dev Calculates the absolute timeout value for a PostRequest
-	*/
+	 * @dev Calculates the absolute timeout value for a PostRequest
+	 */
 	function timeout(PostRequest memory req) internal pure returns (uint64) {
 		if (req.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -158,8 +158,8 @@ library Message {
 	}
 
 	/**
-	* @dev Calculates the absolute timeout value for a GetRequest
-	*/
+	 * @dev Calculates the absolute timeout value for a GetRequest
+	 */
 	function timeout(GetRequest memory req) internal pure returns (uint64) {
 		if (req.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -169,8 +169,8 @@ library Message {
 	}
 
 	/**
-	* @dev Calculates the absolute timeout value for a PostResponse
-	*/
+	 * @dev Calculates the absolute timeout value for a PostResponse
+	 */
 	function timeout(PostResponse memory res) internal pure returns (uint64) {
 		if (res.timeoutTimestamp == 0) {
 			return type(uint64).max;
@@ -180,15 +180,15 @@ library Message {
 	}
 
 	/**
-	* @dev Encode the given post request for commitment
-	*/
+	 * @dev Encode the given post request for commitment
+	 */
 	function encode(PostRequest memory req) internal pure returns (bytes memory) {
 		return abi.encodePacked(req.source, req.dest, req.nonce, req.timeoutTimestamp, req.from, req.to, req.body);
 	}
 
 	/**
-	* @dev Encode the given get request for commitment
-	*/
+	 * @dev Encode the given get request for commitment
+	 */
 	function encode(GetRequest memory req) internal pure returns (bytes memory) {
 		bytes memory keysEncoding = bytes("");
 		uint256 len = req.keys.length;
@@ -209,29 +209,29 @@ library Message {
 	}
 
 	/**
-	* @dev Returns the commitment for the given post response
-	*/
+	 * @dev Returns the commitment for the given post response
+	 */
 	function hash(PostResponse memory res) internal pure returns (bytes32) {
 		return keccak256(bytes.concat(encode(res.request), abi.encodePacked(res.response, res.timeoutTimestamp)));
 	}
 
 	/**
-	* @dev Returns the commitment for the given post request
-	*/
+	 * @dev Returns the commitment for the given post request
+	 */
 	function hash(PostRequest memory req) internal pure returns (bytes32) {
 		return keccak256(encode(req));
 	}
 
 	/**
-	* @dev Returns the commitment for the given get request
-	*/
+	 * @dev Returns the commitment for the given get request
+	 */
 	function hash(GetRequest memory req) internal pure returns (bytes32) {
 		return keccak256(encode(req));
 	}
 
 	/**
-	* @dev Returns the commitment for the given get response
-	*/
+	 * @dev Returns the commitment for the given get response
+	 */
 	function hash(GetResponse memory res) internal pure returns (bytes32) {
 		bytes memory response = bytes("");
 		uint256 len = res.values.length;
