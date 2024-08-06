@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IDispatcher} from "./IDispatcher.sol";
-import {PostRequest, PostResponse, GetResponse, PostTimeout, GetRequest} from "./Message.sol";
+import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
 
 // Some metadata about the request fee
 struct FeeMetadata {
