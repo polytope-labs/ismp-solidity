@@ -33,6 +33,8 @@ struct DispatchGet {
 	uint64 timeout;
 	// Hyperbridge protocol fees for processing this request.
 	uint256 fee;
+	// Some application-specific metadata relating to this request
+	bytes context;
 }
 
 struct DispatchPostResponse {
