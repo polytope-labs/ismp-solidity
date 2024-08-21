@@ -1,6 +1,6 @@
 {
 	"name": "@polytope-labs/ismp-solidity",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Hyperbridge Solidity SDK for the Interoperable state machine protocol",
 	"author": "Polytope Labs <hello@polytope.technology>",
 	"license": "Apache-2.0",

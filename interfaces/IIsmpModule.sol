@@ -2,8 +2,11 @@
 pragma solidity 0.8.17;
 
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
-import {DispatchPost, DispatchPostResponse} from "./IDispatcher.sol";
+import {DispatchPost, DispatchPostResponse, DispatchGet} from "./IDispatcher.sol";
 import {IIsmpHost} from "./IIsmpHost.sol";
+import {Context} from "openzeppelin/utils/Context.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 struct IncomingPostRequest {
 	// The Post request
@@ -66,6 +69,8 @@ interface IIsmpModule {
 
 // @notice Abstract contract to make implementing `IIsmpModule` easier.
 abstract contract BaseIsmpModule is IIsmpModule {
+	using SafeERC20 for IERC20;
+
 	// @notice Chain is not supported
 	error UnsupportedChain();
 
@@ -77,13 +82,18 @@ abstract contract BaseIsmpModule is IIsmpModule {
 
 	// @dev restricts caller to the local `IsmpHost`
 	modifier onlyHost() {
-		if (msg.sender != hostAddr()) revert UnauthorizedAccount();
+		if (msg.sender != host()) revert UnauthorizedAccount();
 		_;
+	}
+
+	constructor() {
+		// approve the host infintely
+		IERC20(IIsmpHost(host()).feeToken()).safeIncreaseAllowance(host(), type(uint256).max);
 	}
 
 	// @dev Returns the `IsmpHost` address for the current chain.
 	// The `IsmpHost` is an immutable contract that will never change.
-	function hostAddr() internal view returns (address h) {
+	function host() public view returns (address h) {
 		assembly {
 			switch chainid()
 			// Ethereum Sepolia
@@ -112,13 +122,18 @@ abstract contract BaseIsmpModule is IIsmpModule {
 	}
 
 	// @dev returns the quoted fee for a dispatch
-	function quoteFee(DispatchPost memory post) internal view returns (uint256) {
-		return post.body.length * IIsmpHost(hostAddr()).perByteFee();
+	function quote(DispatchPost memory post) internal view returns (uint256) {
+		return post.body.length * IIsmpHost(host()).perByteFee();
 	}
 
 	// @dev returns the quoted fee for a dispatch
-	function quoteFee(DispatchPostResponse memory res) internal view returns (uint256) {
-		return res.response.length * IIsmpHost(hostAddr()).perByteFee();
+	function quote(DispatchPostResponse memory res) internal view returns (uint256) {
+		return res.response.length * IIsmpHost(host()).perByteFee();
+	}
+
+	// @dev returns the quoted fee for a dispatch
+	function quote(DispatchGet memory get) internal view returns (uint256) {
+		return get.fee + (get.context.length * IIsmpHost(host()).perByteFee());
 	}
 
 	function onAccept(IncomingPostRequest calldata) external virtual onlyHost {
