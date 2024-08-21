@@ -123,12 +123,12 @@ abstract contract BaseIsmpModule is IIsmpModule {
 
 	// @dev returns the quoted fee for a dispatch
 	function quote(DispatchPost memory post) internal view returns (uint256) {
-		return post.body.length * IIsmpHost(host()).perByteFee();
+		return post.fee + (post.body.length * IIsmpHost(host()).perByteFee());
 	}
 
 	// @dev returns the quoted fee for a dispatch
 	function quote(DispatchPostResponse memory res) internal view returns (uint256) {
-		return res.response.length * IIsmpHost(host()).perByteFee();
+		return post.fee + (res.response.length * IIsmpHost(host()).perByteFee());
 	}
 
 	// @dev returns the quoted fee for a dispatch
