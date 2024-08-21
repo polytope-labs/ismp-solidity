@@ -36,6 +36,8 @@ struct GetRequest {
 	bytes[] keys;
 	// height at which to read destination state machine
 	uint64 height;
+	// Some application-specific metadata relating to this request
+	bytes context;
 }
 
 struct GetResponse {
@@ -204,7 +206,8 @@ library Message {
 				req.height,
 				req.timeoutTimestamp,
 				abi.encodePacked(req.from),
-				keysEncoding
+				keysEncoding,
+				req.context
 			);
 	}
 
