@@ -55,9 +55,19 @@ struct DispatchPostResponse {
  * @title The Ismp Dispatcher
  * @author Polytope Labs (hello@polytope.technology)
  *
- * @notice The IHandler interface serves as the entry point for ISMP datagrams, i.e consensus, requests & response messages.
+ * @notice The IDispatcher serves as the interface requests & response messages.
  */
 interface IDispatcher {
+	/**
+	 * @return the address of the fee token ERC-20 contract on this state machine
+	 */
+	function feeToken() external view returns (address);
+
+	/**
+	 * @return the per-byte fee for outgoing messages.
+	 */
+	function perByteFee() external view returns (uint256);
+
 	/**
 	 * @dev Dispatch a POST request to Hyperbridge
 	 *

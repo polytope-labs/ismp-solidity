@@ -52,16 +52,6 @@ interface IIsmpHost is IDispatcher {
 	function admin() external returns (address);
 
 	/**
-	 * @return the address of the fee token ERC-20 contract on this state machine
-	 */
-	function feeToken() external view returns (address);
-
-	/**
-	 * @return the per-byte fee for outgoing messages.
-	 */
-	function perByteFee() external view returns (uint256);
-
-	/**
 	 * @return the host state machine id
 	 */
 	function host() external view returns (bytes memory);
