@@ -59,12 +59,20 @@ struct DispatchPostResponse {
  */
 interface IDispatcher {
 	/**
-	 * @return the address of the fee token ERC-20 contract on this state machine
+	 * @dev Returns the address of the ERC-20 fee token contract configured for this state machine.
+	 *
+	 * @notice Hyperbridge collects it's dispatch fees in the provided token denomination. This will typically be in stablecoins.
+	 *
+	 * @return feeToken - The ERC20 contract address for fees.
 	 */
 	function feeToken() external view returns (address);
 
 	/**
-	 * @return the per-byte fee for outgoing messages.
+	 * @dev Returns the address of the per byte fee configured for this state machine.
+	 *
+	 * @notice Hyperbridge collects it's dispatch fees per every byte of the outgoing message.
+	 *
+	 * @return perByteFee - The per byte fee for outgoing messages.
 	 */
 	function perByteFee() external view returns (uint256);
 
