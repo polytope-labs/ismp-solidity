@@ -67,12 +67,6 @@ interface IIsmpHost is IDispatcher {
 	function timestamp() external view returns (uint256);
 
 	/**
-	 * @dev Returns the nonce immediately available for requests
-	 * @return the `nonce`
-	 */
-	function nonce() external view returns (uint256);
-
-	/**
 	 * @dev Returns the fisherman responsible for vetoing the given state machine height.
 	 * @return the `fisherman` address
 	 */
@@ -82,12 +76,6 @@ interface IIsmpHost is IDispatcher {
 	 * @return the `frozen` status
 	 */
 	function frozen() external view returns (FrozenStatus);
-
-	/**
-	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
-	 * @return routerAddress - The address to the in-use RouterV02 implementation
-	 */
-	function uniswapV2Router() external view returns (address);
 
 	/**
 	 * @dev Returns the fee required for 3rd party applications to access hyperbridge state commitments.

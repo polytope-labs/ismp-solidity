@@ -59,6 +59,18 @@ struct DispatchPostResponse {
  */
 interface IDispatcher {
 	/**
+	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
+	 * @return routerAddress - The address to the in-use RouterV02 implementation
+	 */
+	function uniswapV2Router() external view returns (address);
+
+	/**
+	 * @dev Returns the nonce immediately available for requests
+	 * @return the `nonce`
+	 */
+	function nonce() external view returns (uint256);
+
+	/**
 	 * @dev Returns the address of the ERC-20 fee token contract configured for this state machine.
 	 *
 	 * @notice Hyperbridge collects it's dispatch fees in the provided token denomination. This will typically be in stablecoins.
