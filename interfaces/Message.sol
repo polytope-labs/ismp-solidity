@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import {StateMachineHeight} from "./IConsensusClient.sol";
-import {StorageValue} from "@polytope-labs/solidity-merkle-trees/Types.sol";
+import {StorageValue} from "@polytope-labs/solidity-merkle-trees/src/Types.sol";
 
 struct PostRequest {
 	// the source state machine of this request
