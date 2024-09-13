@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import {StateMachineHeight} from "./IConsensusClient.sol";
 import {StorageValue} from "@polytope-labs/solidity-merkle-trees/src/Types.sol";
