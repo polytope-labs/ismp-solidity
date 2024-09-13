@@ -4,9 +4,10 @@ pragma solidity 0.8.17;
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
 import {DispatchPost, DispatchPostResponse, DispatchGet} from "./IDispatcher.sol";
 import {IIsmpHost} from "./IIsmpHost.sol";
-import {Context} from "openzeppelin/utils/Context.sol";
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 struct IncomingPostRequest {
 	// The Post request
