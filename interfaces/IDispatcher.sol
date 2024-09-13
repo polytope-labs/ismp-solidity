@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.17;
 
 import {StateMachineHeight} from "./IConsensusClient.sol";
 import {PostRequest} from "./Message.sol";

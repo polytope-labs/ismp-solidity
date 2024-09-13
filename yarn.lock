@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@polytope-labs/solidity-merkle-trees@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@polytope-labs/solidity-merkle-trees/-/solidity-merkle-trees-0.3.2.tgz#3698e30ebf44fab2e32fbbe31c5dfba8618c7e4c"
-  integrity sha512-Zrh12nLkDOkydwaZOya7uo4zeX7PUGEKcxd14O0dFeg0TPyNWQaYZy3tw6XEovfyJOaJYu3Asgc971L6FrscLg==
+"@polytope-labs/solidity-merkle-trees@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@polytope-labs/solidity-merkle-trees/-/solidity-merkle-trees-0.3.3.tgz#04c3b107d6bf6ad72c4908f98ea4104edcd406c1"
+  integrity sha512-WXaX/bKn/lNKFTL2nhZu9m/VMMxHQ+joeMY4IYPLjhgcLLyp009/zCho2du513JADLLp+S9NzaEz4blM4Y6/pw==
   dependencies:
     openzeppelin-solidity "^4.8.1"
 

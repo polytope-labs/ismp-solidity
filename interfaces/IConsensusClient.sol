@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.17;
 
 // The state commiment identifies a commiment to some intermediate state in the state machine.
 // This contains some metadata about the state machine like it's own timestamp at the time of this commitment.
