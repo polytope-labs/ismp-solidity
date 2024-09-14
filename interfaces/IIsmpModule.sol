@@ -7,7 +7,6 @@ import {IIsmpHost} from "./IIsmpHost.sol";
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 struct IncomingPostRequest {
 	// The Post request
@@ -70,26 +69,24 @@ interface IIsmpModule {
 
 // @notice Abstract contract to make implementing `IIsmpModule` easier.
 abstract contract BaseIsmpModule is IIsmpModule {
-	using SafeERC20 for IERC20;
-
-	// @notice Chain is not supported
-	error UnsupportedChain();
-
 	// @notice Call was not expected
 	error UnexpectedCall();
 
 	// @notice Account is unauthorized
-	error UnauthorizedAccount();
+	error UnauthorizedCall();
 
 	// @dev restricts caller to the local `IsmpHost`
 	modifier onlyHost() {
-		if (msg.sender != host()) revert UnauthorizedAccount();
+		if (msg.sender != host()) revert UnauthorizedCall();
 		_;
 	}
 
 	constructor() {
-		// approve the host infintely
-		IERC20(IIsmpHost(host()).feeToken()).safeIncreaseAllowance(host(), type(uint256).max);
+		address host = host();
+		if (host != address(0)) {
+			// approve the host infintely
+			IERC20(IIsmpHost(host).feeToken()).approve(host, type(uint256).max);
+		}
 	}
 
 	// @dev Returns the `IsmpHost` address for the current chain.
@@ -122,8 +119,6 @@ abstract contract BaseIsmpModule is IIsmpModule {
 				h := 0x11EB87c745D97a4Fa8Aec805359837459d240d1b
 			}
 		}
-
-		if (h == address(0)) revert UnsupportedChain();
 	}
 
 	// @dev returns the quoted fee for a dispatch
