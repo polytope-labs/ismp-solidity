@@ -117,6 +117,10 @@ abstract contract BaseIsmpModule is IIsmpModule {
 			case 97 {
 				h := 0x4cB0f5750f6fE14d4B86acA6fe126943bdA3c8c4
 			}
+			// Gnosis Chiado Testnet
+			case 10200 {
+				h := 0x11EB87c745D97a4Fa8Aec805359837459d240d1b
+			}
 		}
 
 		if (h == address(0)) revert UnsupportedChain();
