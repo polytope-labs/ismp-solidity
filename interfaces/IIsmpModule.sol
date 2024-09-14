@@ -82,10 +82,10 @@ abstract contract BaseIsmpModule is IIsmpModule {
 	}
 
 	constructor() {
-		address host = host();
-		if (host != address(0)) {
+		address hostAddr = host();
+		if (hostAddr != address(0)) {
 			// approve the host infintely
-			IERC20(IIsmpHost(host).feeToken()).approve(host, type(uint256).max);
+			IERC20(IIsmpHost(hostAddr).feeToken()).approve(hostAddr, type(uint256).max);
 		}
 	}
 
