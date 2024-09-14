@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
 import {DispatchPost, DispatchPostResponse, DispatchGet} from "./IDispatcher.sol";
