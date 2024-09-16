@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import {StateMachineHeight} from "./IConsensusClient.sol";
-import {PostRequest} from "./Message.sol";
+import {PostRequest, StateMachineHeight} from "./Message.sol";
 
 // @notice An object for dispatching post requests to the Hyperbridge
 struct DispatchPost {
