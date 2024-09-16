@@ -2,10 +2,8 @@
 pragma solidity ^0.8.17;
 
 import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
-import {DispatchPost, DispatchPostResponse, DispatchGet} from "./IDispatcher.sol";
-import {IIsmpHost} from "./IIsmpHost.sol";
+import {DispatchPost, DispatchPostResponse, DispatchGet, IDispatcher} from "./IDispatcher.sol";
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct IncomingPostRequest {
@@ -85,7 +83,7 @@ abstract contract BaseIsmpModule is IIsmpModule {
 		address hostAddr = host();
 		if (hostAddr != address(0)) {
 			// approve the host infintely
-			IERC20(IIsmpHost(hostAddr).feeToken()).approve(hostAddr, type(uint256).max);
+			IERC20(IDispatcher(hostAddr).feeToken()).approve(hostAddr, type(uint256).max);
 		}
 	}
 
@@ -123,17 +121,17 @@ abstract contract BaseIsmpModule is IIsmpModule {
 
 	// @dev returns the quoted fee for a dispatch
 	function quote(DispatchPost memory post) public view returns (uint256) {
-		return post.fee + (post.body.length * IIsmpHost(host()).perByteFee());
+		return post.fee + (post.body.length * IDispatcher(host()).perByteFee());
 	}
 
 	// @dev returns the quoted fee for a dispatch
 	function quote(DispatchPostResponse memory res) public view returns (uint256) {
-		return res.fee + (res.response.length * IIsmpHost(host()).perByteFee());
+		return res.fee + (res.response.length * IDispatcher(host()).perByteFee());
 	}
 
 	// @dev returns the quoted fee for a dispatch
 	function quote(DispatchGet memory get) public view returns (uint256) {
-		return get.fee + (get.context.length * IIsmpHost(host()).perByteFee());
+		return get.fee + (get.context.length * IDispatcher(host()).perByteFee());
 	}
 
 	function onAccept(IncomingPostRequest calldata) external virtual onlyHost {

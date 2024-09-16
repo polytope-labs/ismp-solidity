@@ -1,8 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import {StateMachineHeight} from "./IConsensusClient.sol";
 import {StorageValue} from "@polytope-labs/solidity-merkle-trees/src/Types.sol";
+
+// Identifies some state machine height. We allow for a state machine identifier here
+// as some consensus clients may track multiple, concurrent state machines.
+struct StateMachineHeight {
+	// the state machine identifier
+	uint256 stateMachineId;
+	// height of this state machine
+	uint256 height;
+}
 
 struct PostRequest {
 	// the source state machine of this request
