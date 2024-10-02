@@ -37,5 +37,5 @@ interface IConsensusClient {
 	function verifyConsensus(
 		bytes memory trustedState,
 		bytes memory proof
-	) external returns (bytes memory, IntermediateState memory);
+	) external returns (bytes memory, IntermediateState[] memory);
 }
