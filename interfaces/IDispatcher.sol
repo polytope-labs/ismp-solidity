@@ -91,13 +91,14 @@ interface IDispatcher {
 	function feeToken() external view returns (address);
 
 	/**
-	 * @dev Returns the address of the per byte fee configured for this state machine.
+	 * @dev Returns the address of the per byte fee configured for the destination state machine.
 	 *
 	 * @notice Hyperbridge collects it's dispatch fees per every byte of the outgoing message.
 	 *
+	 * @param dest - The destination chain for the per byte fee.
 	 * @return perByteFee - The per byte fee for outgoing messages.
 	 */
-	function perByteFee() external view returns (uint256);
+	function perByteFee(bytes memory dest) external view returns (uint256);
 
 	/**
 	 * @dev Dispatch a POST request to Hyperbridge
