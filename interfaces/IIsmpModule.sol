@@ -106,27 +106,27 @@ abstract contract BaseIsmpModule is IIsmpModule {
 			switch chainid()
 			// Ethereum Sepolia
 			case 11155111 {
-				h := 0x27B0c6960B792a8dCb01F0652bDE48015cd5f23e
+				h := 0x2EdB74C269948b60ec1000040E104cef0eABaae8
 			}
 			// Arbitrum Sepolia
 			case 421614 {
-				h := 0xfd7E2b2ad0b29Ec817dC7d406881b225B81dbFCf
+				h := 0x3435bD7e5895356535459D6087D1eB982DAd90e7
 			}
 			// Optimism Sepolia
 			case 11155420 {
-				h := 0x30e3af1747B155F37F935E0EC995De5EA4e67586
+				h := 0x6d51b678836d8060d980605d2999eF211809f3C2
 			}
 			// Base Sepolia
 			case 84532 {
-				h := 0x0D7037bd9CEAEF25e5215f808d309ADD0A65Cdb9
+				h := 0xD198c01839dd4843918617AfD1e4DDf44Cc3BB4a
 			}
 			// Binance Smart Chain Testnet
 			case 97 {
-				h := 0x4cB0f5750f6fE14d4B86acA6fe126943bdA3c8c4
+				h := 0x8Aa0Dea6D675d785A882967Bf38183f6117C09b7
 			}
 			// Gnosis Chiado Testnet
 			case 10200 {
-				h := 0x11EB87c745D97a4Fa8Aec805359837459d240d1b
+				h := 0x58A41B89F4871725E5D898d98eF4BF917601c5eB
 			}
 		}
 	}
