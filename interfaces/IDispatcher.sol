@@ -70,6 +70,11 @@ struct DispatchPostResponse {
  */
 interface IDispatcher {
 	/**
+	 * @return the host state machine id
+	 */
+	function host() external view returns (bytes memory);
+
+	/**
 	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps
 	 * @return routerAddress - The address to the in-use RouterV02 implementation
 	 */

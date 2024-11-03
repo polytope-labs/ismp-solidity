@@ -64,11 +64,6 @@ interface IIsmpHost is IDispatcher {
 	function admin() external returns (address);
 
 	/**
-	 * @return the host state machine id
-	 */
-	function host() external view returns (bytes memory);
-
-	/**
 	 * @return the state machine identifier for the connected hyperbridge instance
 	 */
 	function hyperbridge() external view returns (bytes memory);

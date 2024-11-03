@@ -77,15 +77,23 @@ interface IIsmpModule {
 	function onGetTimeout(GetRequest memory request) external;
 }
 
-// @notice Abstract contract to make implementing `IIsmpModule` easier.
+/**
+ * @dev Abstract contract to make implementing `IIsmpModule` easier.
+ */
 abstract contract BaseIsmpModule is IIsmpModule {
-	// @notice Call was not expected
+	/**
+	 * @dev Call was not expected
+	 */
 	error UnexpectedCall();
 
-	// @notice Account is unauthorized
+	/**
+	 * @dev Account is unauthorized
+	 */
 	error UnauthorizedCall();
 
-	// @dev restricts caller to the local `IsmpHost`
+	/**
+	 * @dev restricts caller to the local `IsmpHost`
+	 */
 	modifier onlyHost() {
 		if (msg.sender != host()) revert UnauthorizedCall();
 		_;
@@ -99,46 +107,36 @@ abstract contract BaseIsmpModule is IIsmpModule {
 		}
 	}
 
-	// @dev Returns the `IsmpHost` address for the current chain.
-	// The `IsmpHost` is an immutable contract that will never change.
-	function host() public view returns (address h) {
-		assembly {
-			switch chainid()
-			// Ethereum Sepolia
-			case 11155111 {
-				h := 0x2EdB74C269948b60ec1000040E104cef0eABaae8
-			}
-			// Arbitrum Sepolia
-			case 421614 {
-				h := 0x3435bD7e5895356535459D6087D1eB982DAd90e7
-			}
-			// Optimism Sepolia
-			case 11155420 {
-				h := 0x6d51b678836d8060d980605d2999eF211809f3C2
-			}
-			// Base Sepolia
-			case 84532 {
-				h := 0xD198c01839dd4843918617AfD1e4DDf44Cc3BB4a
-			}
-			// Binance Smart Chain Testnet
-			case 97 {
-				h := 0x8Aa0Dea6D675d785A882967Bf38183f6117C09b7
-			}
-			// Gnosis Chiado Testnet
-			case 10200 {
-				h := 0x58A41B89F4871725E5D898d98eF4BF917601c5eB
-			}
-		}
+	/**
+	 * @dev Should return the `IsmpHost` address for the current chain.
+	 * The `IsmpHost` is an immutable contract that will never change.
+	 */
+	function host() public view virtual returns (address);
+
+	/**
+	 * @dev returns the quoted fee for dispatching a POST request
+	 */
+	function quote(DispatchPost memory request) public view returns (uint256) {
+		uint256 len = 32 > request.body.length ? 32 : request.body.length;
+		return request.fee + (len * IDispatcher(host()).perByteFee(request.dest));
 	}
 
-	// @dev returns the quoted fee for a dispatch
-	function quote(DispatchPost memory post) public view returns (uint256) {
-		return post.fee + (post.body.length * IDispatcher(host()).perByteFee(post.dest));
+	/**
+	 * @dev returns the quoted fee for dispatching a GET request
+	 */
+	function quote(DispatchGet memory request) public view returns (uint256) {
+		uint256 pbf = IDispatcher(host()).perByteFee(IDispatcher(host()).host());
+		uint256 minimumFee = 32 * pbf;
+		uint256 totalFee = request.fee + (pbf * request.context.length);
+		return minimumFee > totalFee ? minimumFee : totalFee;
 	}
 
-	// @dev returns the quoted fee for a dispatch
-	function quote(DispatchPostResponse memory res) public view returns (uint256) {
-		return res.fee + (res.response.length * IDispatcher(host()).perByteFee(res.request.source));
+	/**
+	 * @dev returns the quoted fee for dispatching a POST response
+	 */
+	function quote(DispatchPostResponse memory response) public view returns (uint256) {
+		uint256 len = 32 > response.response.length ? 32 : response.response.length;
+		return response.fee + (len * IDispatcher(host()).perByteFee(response.request.source));
 	}
 
 	function onAccept(IncomingPostRequest calldata) external virtual onlyHost {
