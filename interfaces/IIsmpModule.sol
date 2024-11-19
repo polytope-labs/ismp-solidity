@@ -77,6 +77,15 @@ interface IIsmpModule {
 	function onGetTimeout(GetRequest memory request) external;
 }
 
+
+/**
+ * @dev Uniswap interface for estimating fees in the native token
+ */
+interface IUniswapV2Router02 {
+	function WETH() external pure returns (address);
+	function getAmountsIn(uint, address[] calldata) external pure returns (uint[] memory);
+}
+
 /**
  * @dev Abstract contract to make implementing `IIsmpModule` easier.
  */
@@ -114,7 +123,7 @@ abstract contract BaseIsmpModule is IIsmpModule {
 	function host() public view virtual returns (address);
 
 	/**
-	 * @dev returns the quoted fee for dispatching a POST request
+	 * @dev returns the quoted fee in the feeToken for dispatching a POST request
 	 */
 	function quote(DispatchPost memory request) public view returns (uint256) {
 		uint256 len = 32 > request.body.length ? 32 : request.body.length;
@@ -122,21 +131,61 @@ abstract contract BaseIsmpModule is IIsmpModule {
 	}
 
 	/**
-	 * @dev returns the quoted fee for dispatching a GET request
+	 * @dev returns the quoted fee in the native token for dispatching a POST request
+	 */
+	function quoteNative(DispatchPost memory request) public view returns (uint256) {
+		uint256 fee = quote(request);
+		address _host = host();
+		address _uniswap = IDispatcher(_host).uniswapV2Router();
+		address[] memory path = new address[](2);
+		path[0] = IUniswapV2Router02(_uniswap).WETH();
+		path[1] = IDispatcher(_host).feeToken();
+		return IUniswapV2Router02(_uniswap).getAmountsIn(fee, path)[0];
+	}
+
+	/**
+	 * @dev returns the quoted fee in the feeToken for dispatching a GET request
 	 */
 	function quote(DispatchGet memory request) public view returns (uint256) {
-		uint256 pbf = IDispatcher(host()).perByteFee(IDispatcher(host()).host());
+		address _host = host();
+		uint256 pbf = IDispatcher(_host).perByteFee(IDispatcher(_host).host());
 		uint256 minimumFee = 32 * pbf;
 		uint256 totalFee = request.fee + (pbf * request.context.length);
 		return minimumFee > totalFee ? minimumFee : totalFee;
 	}
 
 	/**
-	 * @dev returns the quoted fee for dispatching a POST response
+	 * @dev returns the quoted fee in the native token for dispatching a GET request
+	 */
+	function quoteNative(DispatchGet memory request) public view returns (uint256) {
+		uint256 fee = quote(request);
+		address _host = host();
+		address _uniswap = IDispatcher(_host).uniswapV2Router();
+		address[] memory path = new address[](2);
+		path[0] = IUniswapV2Router02(_uniswap).WETH();
+		path[1] = IDispatcher(_host).feeToken();
+		return IUniswapV2Router02(_uniswap).getAmountsIn(fee, path)[0];
+	}
+
+	/**
+	 * @dev returns the quoted fee in the feeToken for dispatching a POST response
 	 */
 	function quote(DispatchPostResponse memory response) public view returns (uint256) {
 		uint256 len = 32 > response.response.length ? 32 : response.response.length;
 		return response.fee + (len * IDispatcher(host()).perByteFee(response.request.source));
+	}
+
+	/**
+	 * @dev returns the quoted fee in the native token for dispatching a POST response
+	 */
+	function quoteNative(DispatchPostResponse memory request) public view returns (uint256) {
+		uint256 fee = quote(request);
+		address _host = host();
+		address _uniswap = IDispatcher(_host).uniswapV2Router();
+		address[] memory path = new address[](2);
+		path[0] = IUniswapV2Router02(_uniswap).WETH();
+		path[1] = IDispatcher(_host).feeToken();
+		return IUniswapV2Router02(_uniswap).getAmountsIn(fee, path)[0];
 	}
 
 	function onAccept(IncomingPostRequest calldata) external virtual onlyHost {

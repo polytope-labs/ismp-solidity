@@ -33,4 +33,14 @@ library StateMachine {
 	function evm(uint chainid) internal pure returns (bytes memory) {
 		return bytes(string.concat("EVM-", Strings.toString(chainid)));
 	}
+
+	// @notice Address a substrate state machine
+	function substrate(bytes4 id) internal pure returns (bytes memory) {
+		return bytes(string.concat("SUBSTRATE-", string(abi.encodePacked(id))));
+	}
+
+	// @notice Address a tendermint state machine
+	function tendermint(bytes4 id) internal pure returns (bytes memory) {
+		return bytes(string.concat("TNDRMINT-", string(abi.encodePacked(id))));
+	}
 }
