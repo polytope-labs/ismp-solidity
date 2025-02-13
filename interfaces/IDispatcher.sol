@@ -13,7 +13,7 @@
 // limitations under the License.
 pragma solidity ^0.8.17;
 
-import {PostRequest, StateMachineHeight} from "./Message.sol";
+import {PostRequest, StateMachineHeight, FrozenStatus} from "./Message.sol";
 
 // @notice An object for dispatching post requests to the Hyperbridge
 struct DispatchPost {
@@ -73,6 +73,16 @@ interface IDispatcher {
 	 * @return the host state machine id
 	 */
 	function host() external view returns (bytes memory);
+
+	/**
+	 * @return the state machine identifier for the connected hyperbridge instance
+	 */
+	function hyperbridge() external view returns (bytes memory);
+
+	/**
+	 * @return the `frozen` status
+	 */
+	function frozen() external view returns (FrozenStatus);
 
 	/**
 	 * @dev Returns the address for the Uniswap V2 Router implementation used for swaps

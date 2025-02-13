@@ -15,7 +15,7 @@ pragma solidity ^0.8.17;
 
 import {StateCommitment, StateMachineHeight} from "./IConsensusClient.sol";
 import {IDispatcher} from "./IDispatcher.sol";
-import {PostRequest, PostResponse, GetResponse, GetRequest} from "./Message.sol";
+import {PostRequest, PostResponse, GetResponse, GetRequest, FrozenStatus} from "./Message.sol";
 
 // Some metadata about the request fee
 struct FeeMetadata {
@@ -30,18 +30,6 @@ struct ResponseReceipt {
 	bytes32 responseCommitment;
 	// address of the relayer responsible for this response delivery
 	address relayer;
-}
-
-// Various frozen states of the IIsmpHost
-enum FrozenStatus {
-	// Host is operating normally
-	None,
-	// Host is currently disallowing incoming datagrams
-	Incoming,
-	// Host is currently disallowing outgoing messages
-	Outgoing,
-	// All actions have been frozen
-	All
 }
 
 /**
@@ -64,11 +52,6 @@ interface IIsmpHost is IDispatcher {
 	function admin() external returns (address);
 
 	/**
-	 * @return the state machine identifier for the connected hyperbridge instance
-	 */
-	function hyperbridge() external view returns (bytes memory);
-
-	/**
 	 * @return the host timestamp
 	 */
 	function timestamp() external view returns (uint256);
@@ -78,11 +61,6 @@ interface IIsmpHost is IDispatcher {
 	 * @return the `fisherman` address
 	 */
 	function vetoes(uint256 paraId, uint256 height) external view returns (address);
-
-	/**
-	 * @return the `frozen` status
-	 */
-	function frozen() external view returns (FrozenStatus);
 
 	/**
 	 * @dev Returns the fee required for 3rd party applications to access hyperbridge state commitments.

@@ -15,6 +15,18 @@ pragma solidity ^0.8.17;
 
 import {StorageValue} from "@polytope-labs/solidity-merkle-trees/src/Types.sol";
 
+// Various frozen states of the IIsmpHost
+enum FrozenStatus {
+	// Host is operating normally
+	None,
+	// Host is currently disallowing incoming datagrams
+	Incoming,
+	// Host is currently disallowing outgoing messages
+	Outgoing,
+	// All actions have been frozen
+	All
+}
+
 // Identifies some state machine height. We allow for a state machine identifier here
 // as some consensus clients may track multiple, concurrent state machines.
 struct StateMachineHeight {
